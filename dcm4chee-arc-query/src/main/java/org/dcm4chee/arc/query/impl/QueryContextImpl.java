@@ -50,6 +50,8 @@ import org.dcm4che3.util.ReverseDNS;
 import org.dcm4che3.util.SafeClose;
 import org.dcm4chee.arc.conf.ArchiveAEExtension;
 import org.dcm4chee.arc.conf.ArchiveDeviceExtension;
+import org.dcm4chee.arc.conf.UserIdentityAccessControlAC;
+import org.dcm4chee.arc.keycloak.KeycloakUserIdNegotiator;
 import org.dcm4chee.arc.query.QueryService;
 import org.dcm4chee.arc.query.QueryContext;
 import org.dcm4chee.arc.query.util.OrderByTag;
@@ -251,5 +253,17 @@ class QueryContextImpl implements QueryContext {
     public void close() {
         for (Storage storage : storageMap.values())
             SafeClose.close(storage);
+    }
+
+    @Override
+    public String [] getAccessControlIDs() {
+        Set<String> accessControlIDs = KeycloakUserIdNegotiator.generateAccessControlIDs(getHttpRequest());
+
+        UserIdentityAC userIdentityAC = getAssociation().getAAssociateAC().getUserIdentityAC();
+        if (userIdentityAC instanceof UserIdentityAccessControlAC) {
+            ((UserIdentityAccessControlAC) userIdentityAC).filterAccessControlIDs(accessControlIDs);
+        }
+
+        return (String []) accessControlIDs.toArray();
     }
 }
