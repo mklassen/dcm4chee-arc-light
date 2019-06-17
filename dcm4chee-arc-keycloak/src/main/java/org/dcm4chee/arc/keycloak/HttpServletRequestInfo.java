@@ -41,6 +41,8 @@
 
 package org.dcm4chee.arc.keycloak;
 
+import org.keycloak.KeycloakSecurityContext;
+
 import javax.jms.JMSException;
 import javax.jms.JMSRuntimeException;
 import javax.jms.Message;
@@ -58,11 +60,14 @@ public class HttpServletRequestInfo {
     public final String requestURI;
     public final String queryString;
     public final String localHost;
+    public final KeycloakSecurityContext requestKSC;
+
 
     private HttpServletRequestInfo(HttpServletRequest request) {
         requesterUserID = KeycloakContext.valueOf(request).getUserName();
         requesterHost = request.getRemoteHost();
         requestURI = request.getRequestURI();
+        requestKSC = (KeycloakSecurityContext) request.getAttribute("org.keycloak.KeycloakSecurityContext");
         queryString = request.getQueryString();
         localHost = hostOfURI(requestURI);
     }
@@ -71,6 +76,7 @@ public class HttpServletRequestInfo {
         this.requesterUserID = requesterUserID;
         this.requesterHost = requesterHost;
         this.requestURI = requestURI;
+        this.requestKSC = null;
         this.queryString = null;
         this.localHost = hostOfURI(requestURI);
     }

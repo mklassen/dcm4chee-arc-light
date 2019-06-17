@@ -45,6 +45,7 @@ import org.dcm4che3.net.ApplicationEntity;
 import org.dcm4che3.net.Association;
 import org.dcm4che3.net.Priority;
 import org.dcm4che3.net.Status;
+import org.dcm4che3.net.pdu.UserIdentityAC;
 import org.dcm4che3.net.service.QueryRetrieveLevel2;
 import org.dcm4che3.util.ReverseDNS;
 import org.dcm4che3.util.SafeClose;
@@ -190,7 +191,18 @@ class RetrieveContextImpl implements RetrieveContext {
 
     @Override
     public String[] getAccessControlIDs() {
-        return arcAE.getAccessControlIDs();
+        String [] accessContolIDs = arcAE.getAccessControlIDs();
+        if (null != requestAssociation)
+        {
+            UserIdentityAC userIdentityAC = requestAssociation.getAAssociateAC().getUserIdentityAC();
+            if (userIdentityAC instanceof UserIdentityAccessControlAC)
+            {
+                Set<String> set = new HashSet<>(Arrays.asList(accessContolIDs));
+                ((UserIdentityAccessControlAC) userIdentityAC).filterAccessControlIDs(set);
+                accessContolIDs = (String []) set.toArray();
+            }
+        }
+        return accessContolIDs;
     }
 
     @Override
