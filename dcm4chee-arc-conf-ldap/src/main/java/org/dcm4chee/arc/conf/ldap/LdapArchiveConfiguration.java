@@ -453,6 +453,7 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
                 ext.isRetrieveTaskWarningOnWarnings(), false);
         storeNotEmptyTags(ldapObj, attrs, "dcmRejectConflictingPatientAttribute",
                 ext.getRejectConflictingPatientAttribute());
+        LdapUtils.storeNotNullOrDef(ldapObj, attrs, "dcmUserIdNegotiatorClass", ext.getUserIdNegotiatorClass(), null);
     }
 
     @Override
@@ -730,6 +731,7 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
                 LdapUtils.booleanValue(attrs.get("dcmRetrieveTaskWarningOnNoMatch"), false));
         ext.setRetrieveTaskWarningOnWarnings(
                 LdapUtils.booleanValue(attrs.get("dcmRetrieveTaskWarningOnWarnings"), false));
+        ext.setUserIdNegotiatorClass(LdapUtils.stringValue(attrs.get("dcmUserIdNegotiatorClass"), null));
     }
 
     @Override
@@ -1250,6 +1252,10 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
                 aa.isRetrieveTaskWarningOnWarnings(),
                 bb.isRetrieveTaskWarningOnWarnings(),
                 false);
+        LdapUtils.storeDiffObject(ldapObj, mods, "dcmUserIdNegotiatorClass",
+                aa.getUserIdNegotiatorClass(),
+                bb.getUserIdNegotiatorClass(),
+                null);
         if (remove)
             mods.add(new ModificationItem(DirContext.REMOVE_ATTRIBUTE,
                     LdapUtils.attr("objectClass", "dcmArchiveDevice")));
