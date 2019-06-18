@@ -438,6 +438,7 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
         LdapUtils.storeNotEmpty(ldapObj, attrs, "dcmDeleteMWLDelay", ext.getDeleteMWLDelay());
         storeNotEmptyTags(ldapObj, attrs, "dcmRejectConflictingPatientAttribute",
                 ext.getRejectConflictingPatientAttribute());
+        LdapUtils.storeNotNullOrDef(ldapObj, attrs, "dcmUserIdNegotiatorClass", ext.getUserIdNegotiatorClass(), null);
     }
 
     @Override
@@ -704,6 +705,7 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
         ext.setMWLPollingInterval(toDuration(attrs.get("dcmMWLPollingInterval"), null));
         ext.setMWLFetchSize(LdapUtils.intValue(attrs.get("dcmMWLFetchSize"), 100));
         ext.setDeleteMWLDelay(LdapUtils.stringArray(attrs.get("dcmDeleteMWLDelay")));
+        ext.setUserIdNegotiatorClass(LdapUtils.stringValue(attrs.get("dcmUserIdNegotiatorClass"), null));
     }
 
     @Override
@@ -1203,6 +1205,10 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
                 bb.getMWLFetchSize(),
                 100);
         LdapUtils.storeDiff(ldapObj, mods, "dcmDeleteMWLDelay", aa.getDeleteMWLDelay(), bb.getDeleteMWLDelay());
+        LdapUtils.storeDiffObject(ldapObj, mods, "dcmUserIdNegotiatorClass",
+                aa.getUserIdNegotiatorClass(),
+                bb.getUserIdNegotiatorClass(),
+                null);
         if (remove)
             mods.add(new ModificationItem(DirContext.REMOVE_ATTRIBUTE,
                     LdapUtils.attr("objectClass", "dcmArchiveDevice")));

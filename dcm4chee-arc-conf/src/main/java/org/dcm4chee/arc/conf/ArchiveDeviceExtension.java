@@ -45,11 +45,13 @@ import org.dcm4che3.data.Code;
 import org.dcm4che3.io.BasicBulkDataDescriptor;
 import org.dcm4che3.io.BulkDataDescriptor;
 import org.dcm4che3.net.DeviceExtension;
+import org.dcm4che3.net.UserIdentityNegotiator;
 import org.dcm4che3.soundex.FuzzyStr;
 import org.dcm4che3.util.ByteUtils;
 import org.dcm4che3.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.InvocationTargetException;
 import java.time.Period;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -270,6 +272,7 @@ public class ArchiveDeviceExtension extends DeviceExtension {
     private volatile boolean restrictRetrieveSilently;
     private volatile boolean stowQuicktime2MP4;
     private volatile MultipleStoreAssociations[] multipleStoreAssociations = {};
+    private volatile UserIdentityNegotiator userIdentityNegotiator;
 
     private final HashSet<String> wadoSupportedSRClasses = new HashSet<>();
     private final HashSet<String> wadoSupportedPRClasses = new HashSet<>();
@@ -2685,6 +2688,23 @@ public class ArchiveDeviceExtension extends DeviceExtension {
 
     public void setDeleteMWLDelay(String[] deleteMWLDelay) {
         this.deleteMWLDelay = deleteMWLDelay;
+   }
+
+    public UserIdentityNegotiator getUserIdNegotiator() { return userIdentityNegotiator; }
+
+    public String getUserIdNegotiatorClass() {
+        return null != this.userIdentityNegotiator ? this.userIdentityNegotiator.getClass().getName() : null;
+    }
+
+    public void setUserIdNegotiatorClass(String userIdentityNegotiatorClass) {
+        if (userIdentityNegotiatorClass != null) {
+            try {
+                Class<?> clazz = Class.forName(userIdentityNegotiatorClass);
+                this.userIdentityNegotiator = (UserIdentityNegotiator) clazz.getConstructor().newInstance();
+            } catch (NoSuchMethodException | ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                // Failure to create class, so userIdentityNegotiator is not set
+            }
+        }
     }
 
     @Override
@@ -2953,5 +2973,6 @@ public class ArchiveDeviceExtension extends DeviceExtension {
         impaxReportProperties.putAll(arcdev.impaxReportProperties);
         importReportTemplateParams.clear();
         importReportTemplateParams.putAll(arcdev.importReportTemplateParams);
+        userIdentityNegotiator = arcdev.userIdentityNegotiator;
     }
 }

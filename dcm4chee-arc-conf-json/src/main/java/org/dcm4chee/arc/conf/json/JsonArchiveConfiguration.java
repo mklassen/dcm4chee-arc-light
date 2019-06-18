@@ -347,6 +347,7 @@ public class JsonArchiveConfiguration extends JsonConfigurationExtension {
         writer.writeNotNullOrDef("dcmMWLPollingInterval", arcDev.getMWLPollingInterval(), null);
         writer.writeNotDef("dcmMWLFetchSize", arcDev.getMWLFetchSize(), 100);
         writer.writeNotEmpty("dcmDeleteMWLDelay", arcDev.getDeleteMWLDelay());
+        writer.writeNotNullOrDef("dcmUserIdNegotiatorClass", arcDev.getUserIdNegotiatorClass(), null);
         writeAttributeFilters(writer, arcDev);
         writeStorageDescriptor(writer, arcDev.getStorageDescriptors());
         writeQueryRetrieveView(writer, arcDev.getQueryRetrieveViews());
@@ -1674,6 +1675,9 @@ public class JsonArchiveConfiguration extends JsonConfigurationExtension {
                     break;
                 case "dcmDeleteMWLDelay":
                     arcDev.setDeleteMWLDelay(reader.stringArray());
+                    break;
+                case "dcmUserIdNegotiatorClass":
+                    arcDev.setUserIdNegotiatorClass(reader.stringValue());
                     break;
                 case "dcmAttributeFilter":
                     loadAttributeFilterListFrom(arcDev, reader);
