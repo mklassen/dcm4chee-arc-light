@@ -340,6 +340,7 @@ public class JsonArchiveConfiguration extends JsonConfigurationExtension {
                 ArchiveDeviceExtension.WADO_THUMBNAIL_VIEWPORT);
         writer.writeNotDef("dcmRestrictRetrieveSilently", arcDev.isRestrictRetrieveSilently(), false);
         writer.writeNotDef("dcmStowQuicktime2MP4", arcDev.isStowQuicktime2MP4(), false);
+        writer.writeNotNullOrDef("dcmUserIdNegotiatorClass", arcDev.getUserIdNegotiatorClass(), null);
         writeAttributeFilters(writer, arcDev);
         writeStorageDescriptor(writer, arcDev.getStorageDescriptors());
         writeQueryRetrieveView(writer, arcDev.getQueryRetrieveViews());
@@ -1628,6 +1629,9 @@ public class JsonArchiveConfiguration extends JsonConfigurationExtension {
                     break;
                 case "dcmStowQuicktime2MP4":
                     arcDev.setStowQuicktime2MP4(reader.booleanValue());
+                    break;
+                case "dcmUserIdNegotiatorClass":
+                    arcDev.setUserIdNegotiatorClass(reader.stringValue());
                     break;
                 case "dcmAttributeFilter":
                     loadAttributeFilterListFrom(arcDev, reader);
