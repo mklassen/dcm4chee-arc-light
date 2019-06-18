@@ -306,6 +306,7 @@ public class JsonArchiveConfiguration extends JsonConfigurationExtension {
         writer.writeNotDef("dcmStowExcludeAPPMarkers", arcDev.isStowExcludeAPPMarkers(), false);
         writer.writeNotNullOrDef("dcmWadoThumbnailViewport", arcDev.getWadoThumbnailViewPort(),
                 ArchiveDeviceExtension.WADO_THUMBNAIL_VIEWPORT);
+        writer.writeNotNullOrDef("dcmUserIdNegotiatorClass", arcDev.getUserIdNegotiatorClass(), null);
         writeAttributeFilters(writer, arcDev);
         writeStorageDescriptor(writer, arcDev.getStorageDescriptors());
         writeQueryRetrieveView(writer, arcDev.getQueryRetrieveViews());
@@ -1446,6 +1447,8 @@ public class JsonArchiveConfiguration extends JsonConfigurationExtension {
                 case "dcmWadoThumbnailViewport":
                     arcDev.setWadoThumbnailViewPort(reader.stringValue());
                     break;
+                case "dcmUserIdNegotiatorClass":
+                    arcDev.setUserIdNegotiatorClass(reader.stringValue());
                 case "dcmAttributeFilter":
                     loadAttributeFilterListFrom(arcDev, reader);
                     break;

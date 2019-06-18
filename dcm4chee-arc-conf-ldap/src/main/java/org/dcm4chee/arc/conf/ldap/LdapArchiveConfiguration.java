@@ -310,6 +310,7 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
         LdapUtils.storeNotNullOrDef(ldapObj, attrs, "dcmWadoThumbnailViewport",
                 ext.getWadoThumbnailViewPort(), ArchiveDeviceExtension.WADO_THUMBNAIL_VIEWPORT);
         storeNotEmptyTags(ldapObj, attrs, "dcmRejectConflictingPatientAttribute", ext.getRejectConflictingPatientAttribute());
+        LdapUtils.storeNotNullOrDef(ldapObj, attrs, "dcmUserIdNegotiatorClass", ext.getUserIdNegotiatorClass(), null);
     }
 
     @Override
@@ -552,6 +553,7 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
         ext.setStowExcludeAPPMarkers(LdapUtils.booleanValue(attrs.get("dcmStowExcludeAPPMarkers"), false));
         ext.setWadoThumbnailViewPort(LdapUtils.stringValue(attrs.get("dcmWadoThumbnailViewport"),
                 ArchiveDeviceExtension.WADO_THUMBNAIL_VIEWPORT));
+        ext.setUserIdNegotiatorClass(LdapUtils.stringValue(attrs.get("dcmUserIdNegotiatorClass"), null));
     }
 
     @Override
@@ -989,6 +991,10 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
         LdapUtils.storeDiffObject(ldapObj, mods, "dcmWadoThumbnailViewport",
                 aa.getWadoThumbnailViewPort(), bb.getWadoThumbnailViewPort(),
                 ArchiveDeviceExtension.WADO_THUMBNAIL_VIEWPORT);
+        LdapUtils.storeDiffObject(ldapObj, mods, "dcmUserIdNegotiatorClass",
+                aa.getUserIdNegotiatorClass(),
+                bb.getUserIdNegotiatorClass(),
+                null);
         if (remove)
             mods.add(new ModificationItem(DirContext.REMOVE_ATTRIBUTE,
                     LdapUtils.attr("objectClass", "dcmArchiveDevice")));
@@ -1756,7 +1762,7 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
                 config.destroySubcontext(dn);
                 ConfigurationChanges.addModifiedObject(diffs, dn, ConfigurationChanges.ChangeType.D);
             }
-        
+
         for (Map.Entry<Entity, AttributeFilter> entry : arcDev.getAttributeFilters().entrySet()) {
             Entity entity = entry.getKey();
             String dn = LdapUtils.dnOf("dcmEntity", entity.name(), deviceDN);

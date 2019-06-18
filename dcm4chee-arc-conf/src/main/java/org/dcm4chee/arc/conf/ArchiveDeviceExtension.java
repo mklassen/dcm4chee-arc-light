@@ -45,11 +45,13 @@ import org.dcm4che3.data.Code;
 import org.dcm4che3.io.BasicBulkDataDescriptor;
 import org.dcm4che3.io.BulkDataDescriptor;
 import org.dcm4che3.net.DeviceExtension;
+import org.dcm4che3.net.UserIdentityNegotiator;
 import org.dcm4che3.soundex.FuzzyStr;
 import org.dcm4che3.util.ByteUtils;
 import org.dcm4che3.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.InvocationTargetException;
 import java.time.Period;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -247,6 +249,7 @@ public class ArchiveDeviceExtension extends DeviceExtension {
     private volatile int schedulerMinStartDelay = 60;
     private volatile boolean stowRetiredTransferSyntax = false;
     private volatile boolean stowExcludeAPPMarkers = false;
+    private volatile UserIdentityNegotiator userIdentityNegotiator;
 
     private final HashSet<String> wadoSupportedSRClasses = new HashSet<>();
     private final HashSet<String> wadoSupportedPRClasses = new HashSet<>();
@@ -2419,6 +2422,23 @@ public class ArchiveDeviceExtension extends DeviceExtension {
         this.stowExcludeAPPMarkers = stowExcludeAPPMarkers;
     }
 
+    public UserIdentityNegotiator getUserIdNegotiator() { return userIdentityNegotiator; }
+
+    public String getUserIdNegotiatorClass() {
+        return null != this.userIdentityNegotiator ? this.userIdentityNegotiator.getClass().getName() : null;
+    }
+
+    public void setUserIdNegotiatorClass(String userIdentityNegotiatorClass) {
+        if (userIdentityNegotiatorClass != null) {
+            try {
+                Class<?> clazz = Class.forName(userIdentityNegotiatorClass);
+                this.userIdentityNegotiator = (UserIdentityNegotiator) clazz.getConstructor().newInstance();
+            } catch (NoSuchMethodException | ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                // Failure to create class, so userIdentityNegotiator is not set
+            }
+        }
+    }
+
     @Override
     public void reconfigure(DeviceExtension from) {
         ArchiveDeviceExtension arcdev = (ArchiveDeviceExtension) from;
@@ -2656,5 +2676,6 @@ public class ArchiveDeviceExtension extends DeviceExtension {
         impaxReportProperties.putAll(arcdev.impaxReportProperties);
         importReportTemplateParams.clear();
         importReportTemplateParams.putAll(arcdev.importReportTemplateParams);
+        userIdentityNegotiator = arcdev.userIdentityNegotiator;
     }
 }
