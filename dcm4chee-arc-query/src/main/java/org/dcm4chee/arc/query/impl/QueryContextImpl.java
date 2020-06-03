@@ -64,6 +64,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -274,7 +275,7 @@ class QueryContextImpl implements QueryContext {
     public String [] getAccessControlIDs() {
         Set<String> accessControlIDs = AccessControlID.generateAccessControlIDs(this.httpRequest);
 
-        if (null != this.as && null != this.as.getAAssociateAC()) {
+        if (!Objects.isNull(this.as) && !Objects.isNull(this.as.getAAssociateAC())) {
             UserIdentityAC userIdentityAC = this.as.getAAssociateAC().getUserIdentityAC();
             if (userIdentityAC instanceof UserIdentityAccessControlAC) {
                 ((UserIdentityAccessControlAC) userIdentityAC).filterAccessControlIDs(accessControlIDs);

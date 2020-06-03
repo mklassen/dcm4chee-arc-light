@@ -67,7 +67,7 @@ public class HttpServletRequestInfo {
         requesterUserID = KeycloakContext.valueOf(request).getUserName();
         requesterHost = request.getRemoteHost();
         requestURI = request.getRequestURI();
-        requestKSC = (KeycloakSecurityContext) request.getAttribute("org.keycloak.KeycloakSecurityContext");
+        requestKSC = (KeycloakSecurityContext) request.getAttribute(KeycloakSecurityContext.class.getName());
         queryString = request.getQueryString();
         localHost = hostOfURI(requestURI);
     }

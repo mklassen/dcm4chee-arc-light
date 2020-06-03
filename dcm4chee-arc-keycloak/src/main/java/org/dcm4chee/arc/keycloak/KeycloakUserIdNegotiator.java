@@ -46,10 +46,13 @@ import org.dcm4che3.net.pdu.UserIdentityRQ;
 import org.dcm4chee.arc.conf.ArchiveDeviceExtension;
 import org.dcm4chee.arc.conf.KeycloakServer;
 import org.dcm4chee.arc.conf.UserIdentityAccessControlAC;
+import org.keycloak.TokenVerifier;
 import org.keycloak.authorization.client.AuthorizationDeniedException;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
-import org.keycloak.representations.idm.authorization.AuthorizationResponse;
+import org.keycloak.common.VerificationException;
+import org.keycloak.representations.AccessToken;
+import org.keycloak.representations.AccessTokenResponse;
 
 import java.util.*;
 
@@ -65,8 +68,7 @@ public class KeycloakUserIdNegotiator implements UserIdentityNegotiator {
         if (!Objects.isNull(userIdentity) && !Objects.isNull(arcDev) && userIdentity.getType() == 2) {
 
             // Loop through all configured Keycloak servers until successfully authenticated
-            for (KeycloakServer keycloakServer : arcDev.getKeycloakServers())
-            {
+            for (KeycloakServer keycloakServer : arcDev.getKeycloakServers()) {
                 // Create a configuration for the Keycloak server
                 Map<String, Object> credentials = new HashMap<>();
                 credentials.put("secret", keycloakServer.getClientSecret());
@@ -76,21 +78,21 @@ public class KeycloakUserIdNegotiator implements UserIdentityNegotiator {
                         keycloakServer.getClientID(),
                         credentials,
                         null
-                        );
+                );
 
                 // Use AuthzClient to authenticate
                 AuthzClient authzClient = AuthzClient.create(configuration);
-                AuthorizationResponse response;
+                AccessTokenResponse response = authzClient.obtainAccessToken(userIdentity.getUsername(),
+                        new String(userIdentity.getPasscode()));
+
+                AccessToken token;
                 try {
-                    response = authzClient.authorization(userIdentity.getUsername(),
-                            new String(userIdentity.getPasscode())).authorize();
-                }
-                catch (AuthorizationDeniedException e) {
-                    // Authorization failure, try next server
+                    token = TokenVerifier.create(response.getToken(), AccessToken.class).getToken();
+                } catch (VerificationException e) {
                     continue;
                 }
-                return new UserIdentityAccessControlAC(AccessControlID.generateAccessControlIDs(
-                        authzClient.protection().introspectRequestingPartyToken(response.getToken()).getPermissions()),
+
+                return new UserIdentityAccessControlAC(AccessControlID.generateAccessControlIDs(token, keycloakServer.getClientID()),
                         new byte[0]);
             }
         }

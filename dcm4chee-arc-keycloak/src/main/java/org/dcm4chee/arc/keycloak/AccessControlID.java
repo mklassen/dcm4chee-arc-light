@@ -1,35 +1,35 @@
 package org.dcm4chee.arc.keycloak;
 
-import org.keycloak.representations.idm.authorization.Permission;
+import org.keycloak.representations.AccessToken;
 
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.Objects;
 
 public class AccessControlID {
 
     public static Set<String> generateAccessControlIDs(HttpServletRequestInfo request) {
-        if (null != request) {
-            if (null != request.requestKSC) {
-                if (null != request.requestKSC.getAuthorizationContext()) {
-                    return generateAccessControlIDs(request.requestKSC.getAuthorizationContext().getPermissions());
-                }
-            }
+
+        if (!Objects.isNull(request) && !Objects.isNull(request.requestKSC) && !Objects.isNull(request.requestKSC.getToken())) {
+            return generateAccessControlIDs(request.requestKSC.getToken(), null);
         }
 
-        return Collections.emptySet();
+        return failure();
     }
 
-    public static Set<String> generateAccessControlIDs(List<Permission> permissionList) {
+    public static Set<String> generateAccessControlIDs(AccessToken token, String client_id) {
+        String clientid = token.getOtherClaims().get("origin-clientid").toString();
+
+        AccessToken.Access access = token.getResourceAccess(Objects.isNull(client_id) ? "dcm4chee-arc-ui" : client_id);
+        if (Objects.isNull(access))
+            return failure();
+
+        return access.getRoles();
+    }
+
+    private static Set<String> failure() {
         Set<String> accessControlIDs = new HashSet<>();
-
-        for (Permission permission : permissionList) {
-            if (permission.getScopes().contains("accessControlID")) {
-                accessControlIDs.add(permission.getResourceName());
-            }
-        }
-
+        accessControlIDs.add("None");
         return accessControlIDs;
     }
 }
