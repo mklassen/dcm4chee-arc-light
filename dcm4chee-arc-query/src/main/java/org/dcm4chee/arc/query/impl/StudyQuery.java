@@ -200,6 +200,7 @@ class StudyQuery extends AbstractQuery {
                 context.getPatientIDs(),
                 context.getQueryKeys(),
                 context.getQueryParam());
+        builder.accessControl(predicates, study, context.getAccessControlIDs());
         for (Predicate predicate : extra)
             predicates.add(predicate);
         if (!predicates.isEmpty())
