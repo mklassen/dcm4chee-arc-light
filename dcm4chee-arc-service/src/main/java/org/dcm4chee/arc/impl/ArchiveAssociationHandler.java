@@ -45,6 +45,7 @@ import org.dcm4che3.conf.api.IApplicationEntityCache;
 import org.dcm4che3.net.*;
 import org.dcm4che3.net.pdu.*;
 import org.dcm4che3.util.StringUtils;
+import org.dcm4chee.arc.ArchiveUserIdentityAC;
 import org.dcm4chee.arc.conf.ArchiveAEExtension;
 import org.dcm4chee.arc.keycloak.AccessTokenRequestor;
 import org.slf4j.Logger;
@@ -76,10 +77,16 @@ public class ArchiveAssociationHandler extends AssociationHandler {
             throws IOException {
         ArchiveAEExtension arcAE = as.getApplicationEntity().getAEExtension(ArchiveAEExtension.class);
         if (arcAE != null) {
-            if (!validateUserIdentity(as, arcAE, rq.getUserIdentityRQ()))
-                throw new AAssociateRJ(AAssociateRJ.RESULT_REJECTED_PERMANENT,
-                        AAssociateRJ.SOURCE_SERVICE_PROVIDER_ACSE,
-                        AAssociateRJ.REASON_NO_REASON_GIVEN);
+            // Only validate user if userIdentity has not already been negotiated
+            if (userIdentity == null) {
+                NegotiatedIdentity identity = new NegotiatedIdentity();
+                if (!validateUserIdentity(as, arcAE, rq.getUserIdentityRQ(), identity)) {
+                    throw new AAssociateRJ(AAssociateRJ.RESULT_REJECTED_PERMANENT,
+                            AAssociateRJ.SOURCE_SERVICE_PROVIDER_ACSE,
+                            AAssociateRJ.REASON_NO_REASON_GIVEN);
+                }
+                userIdentity = identity.userIdentityAC;
+            }
             if (arcAE.validateCallingAEHostname() && !validateCallingAEHostname(as))
                 throw new AAssociateRJ(AAssociateRJ.RESULT_REJECTED_PERMANENT,
                     AAssociateRJ.SOURCE_SERVICE_USER,
@@ -88,33 +95,47 @@ public class ArchiveAssociationHandler extends AssociationHandler {
         return super.makeAAssociateAC(as, rq, userIdentity);
     }
 
-    private boolean validateUserIdentity(Association as, ArchiveAEExtension arcAE, UserIdentityRQ userIdentityRQ) {
+    private class NegotiatedIdentity {
+        public UserIdentityAC userIdentityAC = null;
+    }
+
+    private boolean validateUserIdentity(Association as, ArchiveAEExtension arcAE, UserIdentityRQ userIdentityRQ, NegotiatedIdentity identity) {
         switch (arcAE.userIdentityNegotiation()) {
             case SUPPORTS:
-                return validateUserIdentity(as, arcAE, userIdentityRQ, true);
+                return validateUserIdentity(as, arcAE, userIdentityRQ, identity, true);
             case REQUIRED:
-                return validateUserIdentity(as, arcAE, userIdentityRQ, false);
+                return validateUserIdentity(as, arcAE, userIdentityRQ, identity, false);
         }
         return true;
     }
 
     private boolean validateUserIdentity(Association as, ArchiveAEExtension arcAE, UserIdentityRQ userIdentityRQ,
-            boolean optional) {
+            NegotiatedIdentity identity, boolean optional) {
         KeycloakClient kc;
         if (userIdentityRQ != null
                 && (userIdentityRQ.getType() == UserIdentityRQ.USERNAME_PASSCODE
                     || userIdentityRQ.getType() == UserIdentityRQ.JWT)
                 && (kc = keycloakClient(arcAE)) != null)
             try {
+
+                AccessTokenRequestor.IdentityConfigurer identityConfigurer = (response, realmRoles, clientRoles) -> {
+                    ArchiveUserIdentityAC archiveUserIdentityAC = new ArchiveUserIdentityAC(response);
+                    archiveUserIdentityAC.addRealmRoles(realmRoles);
+                    archiveUserIdentityAC.addClientRoles(clientRoles);
+                    identity.userIdentityAC = archiveUserIdentityAC;
+                };
+
                 switch (userIdentityRQ.getType()) {
                     case UserIdentityRQ.USERNAME_PASSCODE:
                         kc.setKeycloakGrantType(KeycloakClient.GrantType.password);
                         kc.setUserID(userIdentityRQ.getUsername());
                         kc.setPassword(new String(userIdentityRQ.getPasscode()));
-                        return accessTokenRequestor.verifyUsernamePasscode(kc, arcAE.userIdentityNegotiationRole());
+                        return accessTokenRequestor.verifyUsernamePasscode(kc, arcAE.userIdentityNegotiationRole(),
+                                identityConfigurer);
                     case UserIdentityRQ.JWT:
                         return accessTokenRequestor.verifyJWT(
-                                userIdentityRQ.getUsername(), kc, arcAE.userIdentityNegotiationRole());
+                                userIdentityRQ.getUsername(), kc, arcAE.userIdentityNegotiationRole(),
+                                identityConfigurer);
                 }
             } catch (Exception e) {
                 LOG.info("{}: validation of {} failed:\n{}", as, userIdentityRQ, e);
