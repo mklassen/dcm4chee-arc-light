@@ -73,6 +73,7 @@ public class ArchiveAEExtension extends AEExtension {
     private Duration purgeInstanceRecordsDelay;
     private String storeAccessControlID;
     private String[] accessControlIDs = {};
+    private Boolean rejectIfNoUserIdentity;
     private OverwritePolicy overwritePolicy;
     private Boolean recordAttributeModification;
     private String bulkDataSpoolDirectory;
@@ -307,6 +308,18 @@ public class ArchiveAEExtension extends AEExtension {
 
     public void setAccessControlIDs(String[] accessControlIDs) {
         this.accessControlIDs = accessControlIDs;
+    }
+
+    public Boolean getRejectIfNoUserIdentity() { return rejectIfNoUserIdentity; }
+
+    public void setRejectIfNoUserIdentity(Boolean rejectIfNoUserIdentity) {
+        this.rejectIfNoUserIdentity = rejectIfNoUserIdentity;
+    }
+
+    public boolean rejectIfNoUserIdentity() {
+        return rejectIfNoUserIdentity != null
+                ? rejectIfNoUserIdentity
+                : getArchiveDeviceExtension().getRejectIfNoUserIdentity();
     }
 
     public OverwritePolicy getOverwritePolicy() {
