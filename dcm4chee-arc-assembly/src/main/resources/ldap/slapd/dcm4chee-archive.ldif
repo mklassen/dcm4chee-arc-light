@@ -1873,6 +1873,20 @@ olcAttributeTypes: ( 1.2.40.0.13.1.15.110.3.384 NAME 'dcmUPSonUPSCompletedID'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE )
+olcAttributeTypes: ( 1.2.40.0.13.1.15.110.3.100000 NAME 'dcmRejectIfNoUserIdentity'
+  DESC 'Reject associations if user is not defined; disabled if absent'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE)
+olcAttributeTypes: ( 1.2.40.0.13.1.15.110.3.100001 NAME 'dcmUserIdentityNegotiatorClass'
+  DESC 'Specifies User Negotiator Class: "org.dcm4chee.arc.keycloak.KeycloakUserIdentityNegotiator"'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE )
+ olcAttributeTypes: ( 1.2.40.0.13.1.15.110.3.100002 NAME 'dcmUserIdentityType'
+   DESC 'Specifies supported user identity types: "username", "username_passcode", "saml", "kerberos", "jwt"'
+   EQUALITY caseExactIA5Match
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
 olcObjectClasses: ( 1.2.40.0.13.1.15.110.4.4 NAME 'dcmArchiveDevice'
   DESC 'DICOM Archive Device related information'
   SUP top AUXILIARY
@@ -1911,6 +1925,9 @@ olcObjectClasses: ( 1.2.40.0.13.1.15.110.4.4 NAME 'dcmArchiveDevice'
     dcmDeleteUPSFetchSize $
     dcmDeleteUPSCompletedDelay $
     dcmDeleteUPSCanceledDelay $
+    dcmRejectIfNoUserIdentity $
+    dcmUserIdentityNegotiatorClass $
+    dcmUserIdentityType $
     dcmOverwritePolicy $
     dcmAcceptMissingPatientID $
     dcmAcceptConflictingPatientID $
@@ -2133,6 +2150,8 @@ olcObjectClasses: ( 1.2.40.0.13.1.15.110.4.5 NAME 'dcmArchiveNetworkAE'
     dcmStoreAccessControlID $
     dcmAccessControlID $
     dcmAcceptedMoveDestination $
+    dcmRejectIfNoUserIdentity $
+    dcmUserIdentityType $
     dcmOverwritePolicy $
     dcmAcceptMissingPatientID $
     dcmAcceptConflictingPatientID $

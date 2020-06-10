@@ -46,11 +46,13 @@ import org.dcm4che3.data.SpecificCharacterSet;
 import org.dcm4che3.io.BasicBulkDataDescriptor;
 import org.dcm4che3.io.BulkDataDescriptor;
 import org.dcm4che3.net.DeviceExtension;
+import org.dcm4che3.net.UserIdentityNegotiator;
 import org.dcm4che3.soundex.FuzzyStr;
 import org.dcm4che3.util.ByteUtils;
 import org.dcm4che3.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.InvocationTargetException;
 import java.time.Period;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -95,6 +97,9 @@ public class ArchiveDeviceExtension extends DeviceExtension {
     private volatile Duration deleteUPSCanceledDelay;
     private volatile Duration upsProcessingPollingInterval;
     private volatile int upsProcessingFetchSize = 100;
+    private volatile boolean rejectIfNoUserIdentity = false;
+    private volatile String userIdentityNegotiatorClass;
+    private volatile String[] userIdentityTypes = {};
     private volatile OverwritePolicy overwritePolicy = OverwritePolicy.NEVER;
     private volatile boolean recordAttributeModification = true;
     private volatile ShowPatientInfo showPatientInfoInSystemLog = ShowPatientInfo.PLAIN_TEXT;
@@ -327,6 +332,7 @@ public class ArchiveDeviceExtension extends DeviceExtension {
     private final Map<String, String> hl7CharsetNameMappings = new HashMap<>();
 
     private transient FuzzyStr fuzzyStr;
+    private transient UserIdentityNegotiator userIdentityNegotiator;
 
     public String getDefaultCharacterSet() {
         return defaultCharacterSet;
@@ -386,6 +392,40 @@ public class ArchiveDeviceExtension extends DeviceExtension {
         } catch (Exception e) {
             throw new IllegalArgumentException(s);
         }
+    }
+
+    public boolean isRejectIfNoUserIdentity() { return rejectIfNoUserIdentity; }
+
+    public void setRejectIfNoUserIdentity(boolean rejectIfNoUserIdentity) {
+        this.rejectIfNoUserIdentity = rejectIfNoUserIdentity;
+    }
+
+    public UserIdentityNegotiator getUserIdentityNegotiator() {
+        if (userIdentityNegotiator == null && userIdentityNegotiatorClass != null)
+            userIdentityNegotiator = userIdentityNegotiator(userIdentityNegotiatorClass);
+        return userIdentityNegotiator;
+    }
+
+    public String getUserIdentityNegotiatorClass() { return userIdentityNegotiatorClass; }
+
+    public void setUserIdentityNegotiatorClass(String userIdentityNegotiatorClass) {
+        this.userIdentityNegotiatorClass = userIdentityNegotiatorClass;
+    }
+
+    private static UserIdentityNegotiator userIdentityNegotiator(String s) {
+        try {
+            return (UserIdentityNegotiator) Class.forName(s).newInstance();
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalArgumentException(s);
+        }
+    }
+
+    public String[] getUserIdentityTypes() { return userIdentityTypes; }
+
+    public void setUserIdentityTypes(String[] userIdentityTypes) {
+        this.userIdentityTypes = userIdentityTypes;
     }
 
     public OverwritePolicy getOverwritePolicy() {
@@ -3207,6 +3247,7 @@ public class ArchiveDeviceExtension extends DeviceExtension {
         impaxReportProperties.putAll(arcdev.impaxReportProperties);
         importReportTemplateParams.clear();
         importReportTemplateParams.putAll(arcdev.importReportTemplateParams);
+        userIdentityNegotiator = arcdev.userIdentityNegotiator;
         cStoreSCUOfCMoveSCP.clear();
         cStoreSCUOfCMoveSCP.putAll(arcdev.cStoreSCUOfCMoveSCP);
         dicomCharsetNameMappings.clear();
