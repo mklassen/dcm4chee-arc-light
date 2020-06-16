@@ -35,11 +35,10 @@
  *  the terms of any one of the MPL, the GPL or the LGPL.
  *
  */
-package org.dcm4chee.arc;
+package org.dcm4chee.arc.keycloak;
 
 import org.dcm4che3.net.pdu.UserIdentityAC;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -70,33 +69,5 @@ public class ArchiveUserIdentityAC extends UserIdentityAC {
 
     public void addClientRoles(Set<String> clientRoles) {
         this.clientRoles.addAll(clientRoles);
-    }
-
-    private static Set<String> filterRoles(Set<String> accepted, Set<String> limit) {
-        Set<String> filtered;
-
-        if (accepted != null) {
-            // Only roles that are accepted and in limit
-            filtered = new HashSet<>(accepted);
-            filtered.retainAll(limit);
-        } else {
-            // null accepted mean no limits have been been defined, so just use limit
-            filtered = new HashSet<>(limit);
-        }
-
-        return filtered;
-    }
-
-    public static Set<String> filterRoles(String[] accepted, Set<String> limit) {
-        Set<String> acceptedRoles = new HashSet<>(Arrays.asList(accepted));
-        return filterRoles(acceptedRoles, limit);
-    }
-
-    public final Set<String> filterRolesByClientRoles(Set<String> accepted) {
-        return filterRoles(accepted, clientRoles);
-    }
-
-    public final Set<String> filterRolesByRealmRoles(Set<String> accepted) {
-        return filterRoles(accepted, realmRoles);
     }
 }
