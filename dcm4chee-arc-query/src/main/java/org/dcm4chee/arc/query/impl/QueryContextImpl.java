@@ -48,6 +48,7 @@ import org.dcm4che3.net.Association;
 import org.dcm4che3.net.service.QueryRetrieveLevel2;
 import org.dcm4che3.util.ReverseDNS;
 import org.dcm4che3.util.SafeClose;
+import org.dcm4chee.arc.keycloak.AccessControl;
 import org.dcm4chee.arc.conf.ArchiveAEExtension;
 import org.dcm4chee.arc.conf.ArchiveDeviceExtension;
 import org.dcm4chee.arc.keycloak.HttpServletRequestInfo;
@@ -262,5 +263,14 @@ class QueryContextImpl implements QueryContext {
     public void close() {
         for (Storage storage : storageMap.values())
             SafeClose.close(storage);
+    }
+
+    @Override
+    public String[] getAccessControlIDs() {
+        return AccessControl.getAccessControlIDs(
+                this.getArchiveAEExtension().getAccessControlIDs(),
+                this.httpRequest,
+                this.getAssociation()
+        );
     }
 }

@@ -45,7 +45,7 @@ import org.dcm4che3.conf.api.IApplicationEntityCache;
 import org.dcm4che3.net.*;
 import org.dcm4che3.net.pdu.*;
 import org.dcm4che3.util.StringUtils;
-import org.dcm4chee.arc.ArchiveUserIdentityAC;
+import org.dcm4chee.arc.keycloak.ArchiveUserIdentityAC;
 import org.dcm4chee.arc.conf.ArchiveAEExtension;
 import org.dcm4chee.arc.keycloak.AccessTokenRequestor;
 import org.slf4j.Logger;
