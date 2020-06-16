@@ -213,6 +213,7 @@ class SeriesQuery extends AbstractQuery {
                 context.getPatientIDs(),
                 context.getQueryKeys(),
                 context.getQueryParam());
+        builder.accessControl(predicates, study, context.getAccessControlIDs());
         if (!predicates.isEmpty())
             q.where(predicates.toArray(new Predicate[0]));
         return q;
