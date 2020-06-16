@@ -72,7 +72,7 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import java.io.InputStream;
 import java.security.PublicKey;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -165,20 +165,12 @@ public class AccessTokenRequestor {
     private void parseToken(AccessToken token, KeycloakClient kc, IdentityConfigurer identityConfigurer) {
 
         if (identityConfigurer != null) {
-            String resource;
-            if (token.getIssuedFor() != null)
-                resource = token.getIssuedFor();
-            else if (kc != null)
+            String resource = null;
+            if (kc != null)
                 resource = kc.getKeycloakRealm();
-            else
-                return;
 
-            Set<String> resourceAccessRoles;
-            if (token.getResourceAccess(resource) != null)
-                resourceAccessRoles = token.getResourceAccess(resource).getRoles();
-            else
-                resourceAccessRoles = new HashSet<>();
-            
+            Set<String> resourceAccessRoles = AccessControl.parseToken(token, resource);
+
             identityConfigurer.run(new byte[0],
                     token.getRealmAccess().getRoles(),
                     resourceAccessRoles);
