@@ -45,20 +45,24 @@ import org.dcm4che3.data.IDWithIssuer;
 import org.dcm4che3.data.Tag;
 import org.dcm4che3.net.ApplicationEntity;
 import org.dcm4che3.net.Association;
+import org.dcm4che3.net.pdu.UserIdentityAC;
 import org.dcm4che3.net.service.QueryRetrieveLevel2;
 import org.dcm4che3.util.ReverseDNS;
 import org.dcm4che3.util.SafeClose;
 import org.dcm4chee.arc.conf.ArchiveAEExtension;
 import org.dcm4chee.arc.conf.ArchiveDeviceExtension;
 import org.dcm4chee.arc.keycloak.HttpServletRequestInfo;
+import org.dcm4chee.arc.keycloak.ClientRoles;
 import org.dcm4chee.arc.query.QueryService;
 import org.dcm4chee.arc.query.QueryContext;
 import org.dcm4chee.arc.query.util.OrderByTag;
 import org.dcm4chee.arc.query.util.QueryParam;
 import org.dcm4chee.arc.storage.Storage;
+import org.dcm4chee.arc.ArchiveUserIdentityAC;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Gunter Zeilinger <gunterze@gmail.com>
@@ -262,5 +266,23 @@ class QueryContextImpl implements QueryContext {
     public void close() {
         for (Storage storage : storageMap.values())
             SafeClose.close(storage);
+    }
+
+    @Override
+    public String [] getAccessControlIDs() {
+        Set<String> clientRoles = ClientRoles.get(this.httpRequest);
+        if (this.as != null && this.as.getAAssociateAC() != null) {
+            UserIdentityAC userIdentityAC = this.as.getAAssociateAC().getUserIdentityAC();
+            if (userIdentityAC instanceof ArchiveUserIdentityAC) {
+                clientRoles = ((ArchiveUserIdentityAC) userIdentityAC).filterRolesByClientRoles(clientRoles);
+            }
+        }
+        if (clientRoles != null && clientRoles.isEmpty()) {
+            // The user has no client roles, so only '*' studies may be accessed
+            // To ensure that at least one accessControlID is present so they do not see everything
+            clientRoles.add("*");
+        }
+        // null clientRoles means do not filter
+        return clientRoles != null ? clientRoles.toArray(new String[0]) : new String[0];
     }
 }
