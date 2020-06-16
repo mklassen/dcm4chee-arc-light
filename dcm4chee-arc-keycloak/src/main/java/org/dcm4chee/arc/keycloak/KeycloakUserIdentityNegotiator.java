@@ -45,6 +45,15 @@ import org.dcm4che3.net.pdu.UserIdentityRQ;
 import org.dcm4chee.arc.conf.ArchiveAEExtension;
 import org.dcm4chee.arc.UserIdentityRolesAC;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.core.interception.ClientReaderInterceptorContext;
+import org.jboss.resteasy.core.interception.ClientWriterInterceptorContext;
+import org.jboss.resteasy.plugins.providers.DocumentProvider;
+import org.jboss.resteasy.plugins.providers.FormUrlEncodedProvider;
+import org.jboss.resteasy.security.doseta.DigitalSigningInterceptor;
+import org.jboss.resteasy.security.doseta.DigitalVerificationInterceptor;
+import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
+import org.jboss.resteasy.plugins.providers.jaxb.*;
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.TokenVerifier;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -58,7 +67,6 @@ import java.io.IOException;
 import java.security.*;
 
 import static org.dcm4che3.net.WebApplication.ServiceClass.DCM4CHEE_ARC_AET;
-
 
 public class KeycloakUserIdentityNegotiator implements UserIdentityNegotiator {
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(KeycloakUserIdentityNegotiator.class);
@@ -159,11 +167,8 @@ public class KeycloakUserIdentityNegotiator implements UserIdentityNegotiator {
             try {
                 builder.sslContext(device.sslContext())
                         .hostnameVerification(allowAnyHostname
-                                        ? ResteasyClientBuilder.HostnameVerificationPolicy.ANY
-                                        : ResteasyClientBuilder.HostnameVerificationPolicy.WILDCARD);
-                if (disableTrustManager)
-                    builder.disableTrustManager();
-
+                                ? ResteasyClientBuilder.HostnameVerificationPolicy.ANY
+                                : ResteasyClientBuilder.HostnameVerificationPolicy.WILDCARD);
             } catch (IOException | GeneralSecurityException e) {
                 LOG.error("SSL Context: " + e.getMessage());
                 throw new AAssociateRJ(AAssociateRJ.RESULT_REJECTED_PERMANENT,
@@ -171,8 +176,47 @@ public class KeycloakUserIdentityNegotiator implements UserIdentityNegotiator {
                         AAssociateRJ.REASON_NO_REASON_GIVEN);
             }
 
-
+            if (disableTrustManager)
+                builder.disableTrustManager();
         }
+
+        // org.jboss.resteasy.plugins.providers.jsonb.JsonBindingProvider is a builtin, but corrupt as
+        // AccessTokenResponse has an empty token.
+        // org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider is also a builtin, so it
+        // cannot be registered again with a higher priority and JsonBindingProvider beats
+        // ResteasyJackson2Provider by default.
+        // org.keycloak.admin.client.JacksonProvider extends ResteasyJackson2Provider and should be able to be
+        // registered with higher priority than JsonBindingProvider, but there is some linkage issue when
+        // loading JacksonProvider being unable to find
+        // org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider even though
+        // ResteasyJackson2Provider itself can be registered without issue.
+
+        // The work around is to use a ResteasyProviderFactory without builtins registered only register those required
+        // for obtaining AccessTokenResponse
+
+        ResteasyProviderFactory providerFactory = new ResteasyProviderFactory();
+        providerFactory.setRegisterBuiltins(false);
+
+        try {
+            providerFactory.register(ResteasyJackson2Provider.class, 1000);
+            providerFactory.register(JAXBXmlRootElementProvider.class, 1000);
+            providerFactory.register(JAXBXmlTypeProvider.class, 1000);
+            providerFactory.register(CollectionProvider.class, 1000);
+            providerFactory.register(DocumentProvider.class, 1000);
+            providerFactory.register(JAXBXmlSeeAlsoProvider.class, 1000);
+            providerFactory.register(ClientWriterInterceptorContext.class, 1000);
+            providerFactory.register(FormUrlEncodedProvider.class, 1000);
+            providerFactory.register(ClientReaderInterceptorContext.class, 1000);
+            providerFactory.register(DigitalSigningInterceptor.class, 1000);
+            providerFactory.register(DigitalVerificationInterceptor.class, 1000);
+        } catch (Exception e) {
+            LOG.error("Error registering required providers: " + e.toString());
+            throw new AAssociateRJ(AAssociateRJ.RESULT_REJECTED_PERMANENT,
+                    AAssociateRJ.SOURCE_SERVICE_USER,
+                    AAssociateRJ.REASON_NO_REASON_GIVEN);
+        }
+        builder.providerFactory(providerFactory);
+
         return builder;
     }
 
@@ -238,5 +282,4 @@ public class KeycloakUserIdentityNegotiator implements UserIdentityNegotiator {
 
         return userIdentityAC;
     }
-
 }
