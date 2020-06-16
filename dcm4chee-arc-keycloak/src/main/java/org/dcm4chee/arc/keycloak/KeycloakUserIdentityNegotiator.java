@@ -106,6 +106,8 @@ public class KeycloakUserIdentityNegotiator implements UserIdentityNegotiator {
                                 keycloakClient.getKeycloakClientID(),
                                 username,
                                 passcode,
+                                keycloakClient.isTLSAllowAnyHostname(),
+                                keycloakClient.isTLSDisableTrustManager(),
                                 device);
 
                         if (userIdentityAC != null)
@@ -125,6 +127,8 @@ public class KeycloakUserIdentityNegotiator implements UserIdentityNegotiator {
                         System.getProperty("ui-client-id", "dcm4chee-arc-ui"),
                         username,
                         passcode,
+                        false,
+                        false,
                         device);
 
                 if (userIdentityAC != null)
@@ -144,13 +148,22 @@ public class KeycloakUserIdentityNegotiator implements UserIdentityNegotiator {
         return null;
     }
 
-    private static ResteasyClientBuilder createResteasyClientBuilder(String url, Device device) throws AAssociateRJ  {
+    private static ResteasyClientBuilder createResteasyClientBuilder(
+            String url,
+            Device device,
+            boolean allowAnyHostname,
+            boolean disableTrustManager) throws AAssociateRJ  {
 
         ResteasyClientBuilder builder = new ResteasyClientBuilder();
         if (url.toLowerCase().startsWith("https")) {
             try {
                 builder.sslContext(device.sslContext())
-                        .hostnameVerification(ResteasyClientBuilder.HostnameVerificationPolicy.WILDCARD);
+                        .hostnameVerification(allowAnyHostname
+                                        ? ResteasyClientBuilder.HostnameVerificationPolicy.ANY
+                                        : ResteasyClientBuilder.HostnameVerificationPolicy.WILDCARD);
+                if (disableTrustManager)
+                    builder.disableTrustManager();
+
             } catch (IOException | GeneralSecurityException e) {
                 LOG.error("SSL Context: " + e.getMessage());
                 throw new AAssociateRJ(AAssociateRJ.RESULT_REJECTED_PERMANENT,
@@ -169,6 +182,8 @@ public class KeycloakUserIdentityNegotiator implements UserIdentityNegotiator {
             String clientId,
             String username,
             String passcode,
+            boolean allowAnyHostname,
+            boolean disableTrustManger,
             Device device) throws AAssociateRJ {
 
         LOG.debug("Authenticating using " + url + "/realms/" +
@@ -182,7 +197,11 @@ public class KeycloakUserIdentityNegotiator implements UserIdentityNegotiator {
                 .username(username)
                 .password(passcode)
                 .grantType(OAuth2Constants.PASSWORD)
-                .resteasyClient(createResteasyClientBuilder(url, device).build())
+                .resteasyClient(createResteasyClientBuilder(
+                        url,
+                        device,
+                        allowAnyHostname,
+                        disableTrustManger).build())
                 .build();
 
         AccessTokenResponse response;
