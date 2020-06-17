@@ -75,7 +75,6 @@
             <module name="org.keycloak.keycloak-core" export="TRUE" services="export"/>
             <module name="org.keycloak.keycloak-adapter-core" export="TRUE" services="export"/>
             <module name="org.keycloak.admin-client" export="TRUE"/>
-            <module name="org.jboss.resteasy.resteasy-jackson2-provider" export="TRUE" services="export"/>
             <!-- apache commons csv -->
             <module name="org.apache.commons.csv" export="TRUE"/>
             <!-- emc-ecs modules -->

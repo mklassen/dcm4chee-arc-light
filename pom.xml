@@ -224,12 +224,6 @@
         <version>8.2.2.jre11</version>
         <type>zip</type>
       </dependency>
-      <dependency>
-        <groupId>org.jboss.resteasy</groupId>
-        <artifactId>resteasy-crypto</artifactId>
-        <version>3.9.1.Final</version>
-        <scope>provided</scope>
-      </dependency>
     </dependencies>
   </dependencyManagement>
 

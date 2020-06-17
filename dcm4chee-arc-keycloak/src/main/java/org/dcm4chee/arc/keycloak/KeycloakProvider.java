@@ -35,60 +35,15 @@
  *  the terms of any one of the MPL, the GPL or the LGPL.
  *
  */
-package org.dcm4chee.arc;
+package org.dcm4chee.arc.keycloak;
 
-import org.dcm4che3.net.pdu.UserIdentityAC;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
 
 /**
  * @author Martyn Klassen <lmklassen@gmail.com>
  * @since June 2020
  */
 
-public class UserIdentityRolesAC extends UserIdentityAC {
-    private Set<String> clientRoles = new HashSet<String>();
-    private Set<String> realmRoles = new HashSet<String>();
-
-    public UserIdentityRolesAC(byte[] serverResponse) {
-        super(serverResponse);
-    }
-
-    public Set<String> getRealmRoles() { return realmRoles; }
-
-    public void addRealmRoles(Set<String> realmRoles) {
-        this.realmRoles.addAll(realmRoles);
-    }
-
-    public Set<String> getClientRoles() { return clientRoles; }
-
-    public void addClientRoles(Set<String> clientRoles) {
-        this.clientRoles.addAll(clientRoles);
-    }
-
-    private static boolean filterRoles(Set<String> accepted, Set<String> limit) {
-        if (accepted.isEmpty())
-            accepted.addAll(limit);
-        else if (!limit.isEmpty()) {
-            accepted.retainAll(limit);
-            return !accepted.isEmpty();
-        }
-        return true;
-    }
-
-    public static Set<String> filterRoles(String[] accepted, Set<String> limit) {
-        Set<String> acceptedRoles = new HashSet<>(Arrays.asList(accepted));
-        filterRoles(acceptedRoles, limit);
-        return acceptedRoles;
-    }
-
-    public final boolean filterRolesByClientRoles(Set<String> accepted) {
-        return filterRoles(accepted, clientRoles);
-    }
-
-    public final boolean filterRolesByRealmRoles(Set<String> accepted) {
-        return filterRoles(accepted, realmRoles);
-    }
+public class KeycloakProvider extends ResteasyJackson2Provider {
+    public KeycloakProvider() {}
 }
