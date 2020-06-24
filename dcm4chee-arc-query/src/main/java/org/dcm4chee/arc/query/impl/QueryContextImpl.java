@@ -58,7 +58,7 @@ import org.dcm4chee.arc.query.QueryContext;
 import org.dcm4chee.arc.query.util.OrderByTag;
 import org.dcm4chee.arc.query.util.QueryParam;
 import org.dcm4chee.arc.storage.Storage;
-import org.dcm4chee.arc.UserIdentityRolesAC;
+import org.dcm4chee.arc.ArchiveUserIdentityAC;
 
 import java.util.HashMap;
 import java.util.List;
@@ -273,8 +273,8 @@ class QueryContextImpl implements QueryContext {
         Set<String> accessControlIDs = AccessControlID.generateAccessControlIDs(this.httpRequest);
         if (this.as != null && this.as.getAAssociateAC() != null) {
             UserIdentityAC userIdentityAC = this.as.getAAssociateAC().getUserIdentityAC();
-            if (userIdentityAC instanceof UserIdentityRolesAC) {
-                ((UserIdentityRolesAC) userIdentityAC).filterRolesByClientRoles(accessControlIDs);
+            if (userIdentityAC instanceof ArchiveUserIdentityAC) {
+                ((ArchiveUserIdentityAC) userIdentityAC).filterRolesByClientRoles(accessControlIDs);
             }
         }
         return accessControlIDs.toArray(new String[0]);

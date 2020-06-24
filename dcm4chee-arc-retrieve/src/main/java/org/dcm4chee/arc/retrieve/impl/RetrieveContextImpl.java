@@ -59,7 +59,7 @@ import org.dcm4chee.arc.storage.Storage;
 import org.dcm4chee.arc.keycloak.HttpServletRequestInfo;
 import org.dcm4chee.arc.store.InstanceLocations;
 import org.dcm4chee.arc.store.UpdateLocation;
-import org.dcm4chee.arc.UserIdentityRolesAC;
+import org.dcm4chee.arc.ArchiveUserIdentityAC;
 
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
@@ -199,9 +199,9 @@ class RetrieveContextImpl implements RetrieveContext {
             AAssociateAC ac = requestAssociation.getAAssociateAC();
             if (null != ac) {
                 UserIdentityAC userIdentityAC = ac.getUserIdentityAC();
-                if (userIdentityAC instanceof UserIdentityRolesAC) {
+                if (userIdentityAC instanceof ArchiveUserIdentityAC) {
                     Set<String> set = new HashSet<>(Arrays.asList(accessContolIDs));
-                    ((UserIdentityRolesAC) userIdentityAC).filterRolesByClientRoles(set);
+                    ((ArchiveUserIdentityAC) userIdentityAC).filterRolesByClientRoles(set);
                     accessContolIDs = (String[]) set.toArray();
                 }
             }
