@@ -128,6 +128,19 @@ public abstract class ArchiveUserIdentityNegotiator implements UserIdentityNegot
                 }
             }
         }
+
+        // Also add the UI keycloak client
+        String authServerURL = System.getProperty("auth-server-url");
+        if (authServerURL != null) {
+            KeycloakClient keycloakClient = new KeycloakClient();
+            keycloakClient.setKeycloakClientID(System.getProperty("ui-client-id", "dcm4chee-arc-ui"));
+            keycloakClient.setKeycloakRealm(System.getProperty("realm-name", "dcm4che"));
+            keycloakClient.setKeycloakServerURL(authServerURL);
+            keycloakClient.setTLSAllowAnyHostname(false);
+            keycloakClient.setTLSDisableTrustManager(false);
+            result.add(keycloakClient);
+        }
+
         return result;
     }
 }

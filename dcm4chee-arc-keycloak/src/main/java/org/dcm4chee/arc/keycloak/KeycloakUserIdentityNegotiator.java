@@ -48,17 +48,17 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.keycloak.TokenVerifier;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
+import org.keycloak.common.VerificationException;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.OAuth2Constants;
 import org.slf4j.LoggerFactory;
+import org.keycloak.util.TokenUtil;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.NotAuthorizedException;
 import java.io.IOException;
 import java.security.*;
-
-import static org.dcm4che3.net.WebApplication.ServiceClass.DCM4CHEE_ARC_AET;
 
 /**
  * @author Martyn Klassen <lmklassen@gmail.com>
@@ -72,14 +72,90 @@ public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiato
                                        @NotNull Association as,
                                        @NotNull UserIdentityRQ userIdentity) throws AAssociateRJ {
 
-        String username = userIdentity.getUsername();
-        String passcode = new String(userIdentity.getPasscode());
+        switch (userIdentity.getType()) {
+            case UserIdentityRQ.USERNAME_PASSCODE:
+                return negotiate(userIdentity.getUsername(), new String(userIdentity.getPasscode()), device, as);
+            case UserIdentityRQ.USERNAME:
+                return negotiate(userIdentity.getUsername(), device, as);
+            case 5: // DICOM Standard JWT not yet added to org.dcm4che3.net.pdu.UserIdentityRQ
+                return negotiateToken(new String(userIdentity.getPrimaryField()), device, as);
+            case UserIdentityRQ.KERBEROS:
+            case UserIdentityRQ.SAML:
+            default:
+                break;
+        }
 
+        return null;
+    }
+
+    private ArchiveUserIdentityAC negotiateToken(String tokenString,
+                                                 Device device,
+                                                 Association as) {
+
+        AccessToken token = null;
         for (KeycloakClient keycloakClient : this.getKeycloakClients(device, as)) {
-            UserIdentityAC userIdentityAC = getUserIdentity(
+            try {
+                token = TokenVerifier.create(tokenString, AccessToken.class)
+                        .withDefaultChecks()
+                        .audience("account")
+                        .issuedFor(keycloakClient.getKeycloakClientID())
+                        .tokenType(TokenUtil.TOKEN_TYPE_BEARER)
+                        .verify()
+                        .getToken();
+            } catch (VerificationException e) {
+                continue;
+            }
+
+            if (token != null) {
+                return populateUser(token, keycloakClient.getKeycloakClientID(), new ArchiveUserIdentityAC(new byte[0]));
+            }
+        }
+
+        LOG.debug("Token verification failed");
+        return null;
+    }
+
+    private ArchiveUserIdentityAC negotiate(String username,
+                                            Device device,
+                                            Association as) throws AAssociateRJ {
+
+        // Get the credentials for the username without password
+        // Use the Keycloak client credentials instead
+        // Using this without AE Title restrictions allows authentication as any user without corresponding passcode
+        for (KeycloakClient keycloakClient : this.getKeycloakClients(device, as)) {
+
+            ArchiveUserIdentityAC userIdentityAC = getUserIdentity(
                     keycloakClient.getKeycloakServerURL(),
                     keycloakClient.getKeycloakRealm(),
                     keycloakClient.getKeycloakClientID(),
+                    keycloakClient.getKeycloakClientSecret(),
+                    OAuth2Constants.CLIENT_CREDENTIALS,
+                    username,
+                    null,
+                    keycloakClient.isTLSAllowAnyHostname(),
+                    keycloakClient.isTLSDisableTrustManager(),
+                    device);
+
+            if (userIdentityAC != null)
+                return userIdentityAC;
+        }
+
+        LOG.debug("Unable to authenticate " + username + " without passcode.");
+        return null;
+    }
+
+    private ArchiveUserIdentityAC negotiate(String username,
+                                            String passcode,
+                                            Device device,
+                                            Association as) throws AAssociateRJ {
+
+        for (KeycloakClient keycloakClient : this.getKeycloakClients(device, as)) {
+            ArchiveUserIdentityAC userIdentityAC = getUserIdentity(
+                    keycloakClient.getKeycloakServerURL(),
+                    keycloakClient.getKeycloakRealm(),
+                    keycloakClient.getKeycloakClientID(),
+                    keycloakClient.getKeycloakClientSecret(),
+                    OAuth2Constants.PASSWORD,
                     username,
                     passcode,
                     keycloakClient.isTLSAllowAnyHostname(),
@@ -90,27 +166,7 @@ public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiato
                 return userIdentityAC;
         }
 
-        // Fallback attempt to get token From the UI keycloak client
-        String authServerURL = System.getProperty("auth-server-url");
-        if (authServerURL != null) {
-            LOG.debug("Fallback to UI keycloak client");
-
-            UserIdentityAC userIdentityAC = getUserIdentity(
-                    authServerURL,
-                    System.getProperty("realm-name", "dcm4che"),
-                    System.getProperty("ui-client-id", "dcm4chee-arc-ui"),
-                    username,
-                    passcode,
-                    false,
-                    false,
-                    device);
-
-            if (userIdentityAC != null)
-                return userIdentityAC;
-        }
-
-        LOG.debug("Unable to authenticate " + username);
-
+        LOG.debug("Unable to authenticate " + username + " with passcode.");
         return null;
     }
 
@@ -118,7 +174,7 @@ public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiato
             String url,
             Device device,
             boolean allowAnyHostname,
-            boolean disableTrustManager) throws AAssociateRJ  {
+            boolean disableTrustManager) throws AAssociateRJ {
 
         ResteasyClientBuilder builder = new ResteasyClientBuilder();
         if (url.toLowerCase().startsWith("https")) {
@@ -155,10 +211,12 @@ public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiato
         return builder;
     }
 
-    private static UserIdentityAC getUserIdentity(
+    private static ArchiveUserIdentityAC getUserIdentity(
             String url,
             String realm,
             String clientId,
+            String clientSecret,
+            String grantType,
             String username,
             String passcode,
             boolean allowAnyHostname,
@@ -169,19 +227,28 @@ public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiato
                 realm + " with client " +
                 clientId + " for user " + username);
 
-        Keycloak server = KeycloakBuilder.builder()
-                .serverUrl(url)
-                .realm(realm)
-                .clientId(clientId)
-                .username(username)
-                .password(passcode)
-                .grantType(OAuth2Constants.PASSWORD)
-                .resteasyClient(createResteasyClientBuilder(
-                        url,
-                        device,
-                        allowAnyHostname,
-                        disableTrustManger).build())
-                .build();
+        Keycloak server;
+        try {
+            server = KeycloakBuilder.builder()
+                    .serverUrl(url)
+                    .realm(realm)
+                    .clientId(clientId)
+                    .clientSecret(clientSecret)
+                    .username(username)
+                    .password(passcode)
+                    .grantType(grantType)
+                    .resteasyClient(createResteasyClientBuilder(
+                            url,
+                            device,
+                            allowAnyHostname,
+                            disableTrustManger).build())
+                    .build();
+        }
+        catch (IllegalStateException e)
+        {
+            LOG.debug("Failed to build keycloak server");
+            return null;
+        }
 
         AccessTokenResponse response;
         try {
@@ -199,21 +266,30 @@ public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiato
             return userIdentityAC;
         }
 
+        // Extract AccessToken from response token string
+        // Verification is not necessary because we just got the token from keycloak server
         AccessToken token;
         try {
             token = TokenVerifier.create(response.getToken(), AccessToken.class).getToken();
-        } catch (Exception e) {
-            LOG.info("Token verification error for " + username + ": " + e.getMessage());
+        } catch (VerificationException e) {
+            LOG.info("Token verification error: " + e.getMessage());
             return userIdentityAC;
         }
 
-        AccessToken.Access access = token.getResourceAccess(clientId);
-        if (access != null)
-            userIdentityAC.addClientRoles(access.getRoles());
+        return populateUser(token, clientId, userIdentityAC);
+    }
 
-        access = token.getRealmAccess();
+    private static ArchiveUserIdentityAC populateUser(AccessToken token,
+                                                      String clientId,
+                                                      ArchiveUserIdentityAC userIdentityAC) {
+        // Add the roles to the userIdentityAC
+        AccessToken.Access access = token.getRealmAccess();
         if (access != null)
             userIdentityAC.addRealmRoles(access.getRoles());
+
+        access = token.getResourceAccess(clientId);
+        if (access != null)
+            userIdentityAC.addClientRoles(access.getRoles());
 
         return userIdentityAC;
     }
