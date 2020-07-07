@@ -98,6 +98,7 @@ public class ArchiveDeviceExtension extends DeviceExtension {
     private volatile int upsProcessingFetchSize = 100;
     private volatile boolean rejectIfNoUserIdentity = false;
     private volatile String userIdentityNegotiatorClass;
+    private volatile String[] userIdentityTypes = {};
     private volatile OverwritePolicy overwritePolicy = OverwritePolicy.NEVER;
     private volatile boolean recordAttributeModification = true;
     private volatile ShowPatientInfo showPatientInfoInSystemLog = ShowPatientInfo.PLAIN_TEXT;
@@ -411,6 +412,12 @@ public class ArchiveDeviceExtension extends DeviceExtension {
         } catch (Exception e) {
             throw new IllegalArgumentException(s);
         }
+    }
+
+    public String[] getUserIdentityTypes() { return userIdentityTypes; }
+
+    public void setUserIdentityTypes(String[] userIdentityTypes) {
+        this.userIdentityTypes = userIdentityTypes;
     }
 
     public OverwritePolicy getOverwritePolicy() {

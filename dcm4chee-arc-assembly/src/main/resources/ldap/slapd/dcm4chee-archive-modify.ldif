@@ -1850,6 +1850,10 @@ olcAttributeTypes: ( 1.2.40.0.13.1.15.110.3.379 NAME 'dcmUserIdentityNegotiatorC
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE )
+olcAttributeTypes: ( 1.2.40.0.13.1.15.110.3.380 NAME 'dcmUserIdentityType'
+  DESC 'Specifies supported user identity types: "username", "username_passcode", "saml", "kerberos", "jwt"'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
 -
 replace: olcObjectClasses
 olcObjectClasses: ( 1.2.40.0.13.1.15.110.4.4 NAME 'dcmArchiveDevice'
@@ -1890,6 +1894,7 @@ olcObjectClasses: ( 1.2.40.0.13.1.15.110.4.4 NAME 'dcmArchiveDevice'
     dcmDeleteUPSCanceledDelay $
     dcmRejectIfNoUserIdentity $
     dcmUserIdentityNegotiatorClass $
+    dcmUserIdentityType $
     dcmOverwritePolicy $
     dcmAcceptMissingPatientID $
     dcmAcceptConflictingPatientID $
@@ -2110,6 +2115,7 @@ olcObjectClasses: ( 1.2.40.0.13.1.15.110.4.5 NAME 'dcmArchiveNetworkAE'
     dcmAccessControlID $
     dcmAcceptedMoveDestination $
     dcmRejectIfNoUserIdentity $
+    dcmUserIdentityType $
     dcmOverwritePolicy $
     dcmAcceptMissingPatientID $
     dcmAcceptConflictingPatientID $
