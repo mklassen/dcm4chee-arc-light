@@ -42,12 +42,12 @@ import org.dcm4che3.net.pdu.AAssociateRJ;
 import org.dcm4che3.net.pdu.UserIdentityAC;
 import org.dcm4che3.net.pdu.UserIdentityRQ;
 import org.dcm4chee.arc.conf.ArchiveAEExtension;
+import org.dcm4chee.arc.conf.ArchiveDeviceExtension;
 import org.slf4j.LoggerFactory;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 import static org.dcm4che3.net.WebApplication.ServiceClass.DCM4CHEE_ARC_AET;
 
@@ -59,9 +59,36 @@ import static org.dcm4che3.net.WebApplication.ServiceClass.DCM4CHEE_ARC_AET;
 public abstract class ArchiveUserIdentityNegotiator implements UserIdentityNegotiator {
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(ArchiveUserIdentityNegotiator.class);
 
-    protected abstract UserIdentityAC negotiate(@NotNull Device device,
-                                                @NotNull Association as,
-                                                @NotNull UserIdentityRQ userIdentity) throws AAssociateRJ;
+    protected ArchiveUserIdentityAC negotiateUsernamePasscode(@NotNull String username,
+                                                              @NotNull String passcode,
+                                                              @NotNull Device device,
+                                                              @NotNull Association as) throws AAssociateRJ {
+        return null;
+    }
+
+    protected ArchiveUserIdentityAC negotiateUsername(@NotNull String username,
+                                                      @NotNull Device device,
+                                                      @NotNull Association as) throws AAssociateRJ {
+        return null;
+    }
+
+    protected ArchiveUserIdentityAC negotiateJWT(@NotNull String token,
+                                                 @NotNull Device device,
+                                                 @NotNull Association as) throws AAssociateRJ {
+        return null;
+    }
+
+    protected ArchiveUserIdentityAC negotiateSAML(@NotNull String token,
+                                                  @NotNull Device device,
+                                                  @NotNull Association as) throws AAssociateRJ {
+        return null;
+    }
+
+    protected ArchiveUserIdentityAC negotiateKerberos(@NotNull String ticket,
+                                                      @NotNull Device device,
+                                                      @NotNull Association as) throws AAssociateRJ {
+        return null;
+    }
 
     public UserIdentityAC negotiate(Association as, UserIdentityRQ userIdentity) throws AAssociateRJ {
 
@@ -76,16 +103,25 @@ public abstract class ArchiveUserIdentityNegotiator implements UserIdentityNegot
         boolean rejectIfNoUserIdentity = true;
 
         Device device = as.getDevice();
+        String[] userTypes = {};
         if (device != null) {
+            // Get the ArchiveDevice Extension settings, in case no ArchiveAEExtension exists
+            ArchiveDeviceExtension arcDev = device.getDeviceExtension(ArchiveDeviceExtension.class);
+            if (arcDev != null) {
+                rejectIfNoUserIdentity = arcDev.isRejectIfNoUserIdentity();
+                userTypes = arcDev.getUserIdentityTypes();
+            }
+
+            // Override with the ArchiveAEExtension settings
             ApplicationEntity ae = device.getApplicationEntity(as.getLocalAET());
             if (ae != null) {
                 ArchiveAEExtension arcAE = ae.getAEExtension(ArchiveAEExtension.class);
                 if (arcAE != null) {
                     rejectIfNoUserIdentity = arcAE.rejectIfNoUserIdentity();
+                    userTypes = arcAE.userIdentityTypes();
                 }
             }
-        }
-        else {
+        } else {
             // No device is a fatal authentication error
             LOG.error("Unable to get device for association");
             throw new AAssociateRJ(AAssociateRJ.RESULT_REJECTED_PERMANENT,
@@ -93,12 +129,64 @@ public abstract class ArchiveUserIdentityNegotiator implements UserIdentityNegot
                     AAssociateRJ.REASON_NO_REASON_GIVEN);
         }
 
-        UserIdentityAC userIdentityAC = null;
-        if (userIdentity != null)
-        {
-            userIdentityAC =  this.negotiate(device, as, userIdentity);
+        // All user types are supported unless otherwise specified
+        if (userTypes.length < 1) {
+            userTypes = new String[]{"username", "username_passcode", "saml", "kerberos", "jwt"};
         }
-        else {
+
+        ArchiveUserIdentityAC userIdentityAC = null;
+        if (userIdentity != null) {
+            switch (userIdentity.getType()) {
+                case UserIdentityRQ.USERNAME_PASSCODE:
+                    for (String type : userTypes) {
+                        if (type.contentEquals("username_passcode")) {
+                            userIdentityAC = negotiateUsernamePasscode(userIdentity.getUsername(),
+                                    new String(userIdentity.getPasscode()),
+                                    device, as);
+                            break;
+                        }
+                    }
+                    break;
+                case UserIdentityRQ.USERNAME:
+                    for (String type : userTypes) {
+                        if (type.contentEquals("username")) {
+                            userIdentityAC = negotiateUsername(userIdentity.getUsername(),
+                                    device, as);
+                            break;
+                        }
+                    }
+                    break;
+                case 5: // DICOM Standard JWT not yet added to org.dcm4che3.net.pdu.UserIdentityRQ
+                    for (String type : userTypes) {
+                        if (type.contentEquals("jwt")) {
+                            userIdentityAC = negotiateJWT(new String(userIdentity.getPrimaryField()),
+                                    device, as);
+                            break;
+                        }
+                    }
+                    break;
+                case UserIdentityRQ.KERBEROS:
+                    for (String type : userTypes) {
+                        if (type.contentEquals("jwt")) {
+                            userIdentityAC = negotiateKerberos(new String(userIdentity.getPrimaryField()),
+                                    device, as);
+                            break;
+                        }
+                    }
+                    break;
+                case UserIdentityRQ.SAML:
+                    for (String type : userTypes) {
+                        if (type.contentEquals("jwt")) {
+                            userIdentityAC = negotiateSAML(new String(userIdentity.getPrimaryField()),
+                                    device, as);
+                            break;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        } else {
             LOG.debug("User Identity negotiation without UserIdentityRQ");
         }
 
@@ -113,13 +201,11 @@ public abstract class ArchiveUserIdentityNegotiator implements UserIdentityNegot
     }
 
     protected Collection<KeycloakClient> getKeycloakClients(@NotNull Device device, @NotNull Association as) {
-        Collection<KeycloakClient> result = new ArrayList(device.getWebApplications().size());
+        Collection<KeycloakClient> result = new ArrayList<>(device.getWebApplications().size() + 1);
         String aetitle = as.getLocalAET();
         if (aetitle != null) {
-            Iterator iterWebApplications = device.getWebApplications().iterator();
 
-            while (iterWebApplications.hasNext()) {
-                WebApplication webapp = (WebApplication) iterWebApplications.next();
+            for (WebApplication webapp : device.getWebApplications()) {
                 // Only use web applications with AETitle that matches the called AETitle and having AET service class
                 if (aetitle.equals(webapp.getAETitle()) && webapp.containsServiceClass(DCM4CHEE_ARC_AET)) {
                     KeycloakClient keycloakClient = webapp.getKeycloakClient();

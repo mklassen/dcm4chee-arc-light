@@ -40,8 +40,6 @@ package org.dcm4chee.arc.keycloak;
 
 import org.dcm4che3.net.*;
 import org.dcm4che3.net.pdu.AAssociateRJ;
-import org.dcm4che3.net.pdu.UserIdentityAC;
-import org.dcm4che3.net.pdu.UserIdentityRQ;
 import org.dcm4chee.arc.ArchiveUserIdentityNegotiator;
 import org.dcm4chee.arc.ArchiveUserIdentityAC;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
@@ -68,32 +66,12 @@ import java.security.*;
 public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiator {
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(KeycloakUserIdentityNegotiator.class);
 
-    protected UserIdentityAC negotiate(@NotNull Device device,
-                                       @NotNull Association as,
-                                       @NotNull UserIdentityRQ userIdentity) throws AAssociateRJ {
-
-        switch (userIdentity.getType()) {
-            case UserIdentityRQ.USERNAME_PASSCODE:
-                return negotiate(userIdentity.getUsername(), new String(userIdentity.getPasscode()), device, as);
-            case UserIdentityRQ.USERNAME:
-                return negotiate(userIdentity.getUsername(), device, as);
-            case 5: // DICOM Standard JWT not yet added to org.dcm4che3.net.pdu.UserIdentityRQ
-                return negotiateToken(new String(userIdentity.getPrimaryField()), device, as);
-            case UserIdentityRQ.KERBEROS:
-            case UserIdentityRQ.SAML:
-            default:
-                break;
-        }
-
-        return null;
-    }
-
-    private ArchiveUserIdentityAC negotiateToken(String tokenString,
-                                                 Device device,
-                                                 Association as) {
-
+    @Override
+    protected ArchiveUserIdentityAC negotiateJWT(@NotNull String tokenString,
+                                                 @NotNull Device device,
+                                                 @NotNull Association as) throws AAssociateRJ {
         AccessToken token = null;
-        for (KeycloakClient keycloakClient : this.getKeycloakClients(device, as)) {
+        for (KeycloakClient keycloakClient : getKeycloakClients(device, as)) {
             try {
                 token = TokenVerifier.create(tokenString, AccessToken.class)
                         .withDefaultChecks()
@@ -115,14 +93,15 @@ public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiato
         return null;
     }
 
-    private ArchiveUserIdentityAC negotiate(String username,
-                                            Device device,
-                                            Association as) throws AAssociateRJ {
+    @Override
+    protected ArchiveUserIdentityAC negotiateUsername(@NotNull String username,
+                                                      @NotNull Device device,
+                                                      @NotNull Association as) throws AAssociateRJ {
 
         // Get the credentials for the username without password
         // Use the Keycloak client credentials instead
         // Using this without AE Title restrictions allows authentication as any user without corresponding passcode
-        for (KeycloakClient keycloakClient : this.getKeycloakClients(device, as)) {
+        for (KeycloakClient keycloakClient : getKeycloakClients(device, as)) {
 
             ArchiveUserIdentityAC userIdentityAC = getUserIdentity(
                     keycloakClient.getKeycloakServerURL(),
@@ -134,7 +113,7 @@ public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiato
                     null,
                     keycloakClient.isTLSAllowAnyHostname(),
                     keycloakClient.isTLSDisableTrustManager(),
-                    device);
+                    keycloakClient.getDevice() == null ? device : keycloakClient.getDevice());
 
             if (userIdentityAC != null)
                 return userIdentityAC;
@@ -144,12 +123,13 @@ public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiato
         return null;
     }
 
-    private ArchiveUserIdentityAC negotiate(String username,
-                                            String passcode,
-                                            Device device,
-                                            Association as) throws AAssociateRJ {
+    @Override
+    protected ArchiveUserIdentityAC negotiateUsernamePasscode(@NotNull String username,
+                                                              @NotNull String passcode,
+                                                              @NotNull Device device,
+                                                              @NotNull Association as) throws AAssociateRJ {
 
-        for (KeycloakClient keycloakClient : this.getKeycloakClients(device, as)) {
+        for (KeycloakClient keycloakClient : getKeycloakClients(device, as)) {
             ArchiveUserIdentityAC userIdentityAC = getUserIdentity(
                     keycloakClient.getKeycloakServerURL(),
                     keycloakClient.getKeycloakRealm(),
@@ -160,7 +140,7 @@ public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiato
                     passcode,
                     keycloakClient.isTLSAllowAnyHostname(),
                     keycloakClient.isTLSDisableTrustManager(),
-                    device);
+                    keycloakClient.getDevice() == null ? device : keycloakClient.getDevice());
 
             if (userIdentityAC != null)
                 return userIdentityAC;
@@ -243,9 +223,7 @@ public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiato
                             allowAnyHostname,
                             disableTrustManger).build())
                     .build();
-        }
-        catch (IllegalStateException e)
-        {
+        } catch (IllegalStateException e) {
             LOG.debug("Failed to build keycloak server");
             return null;
         }
