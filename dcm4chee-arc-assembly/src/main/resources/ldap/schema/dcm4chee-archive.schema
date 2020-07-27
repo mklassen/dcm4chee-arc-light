@@ -2207,19 +2207,19 @@ attributetype ( 1.2.40.0.13.1.15.110.3.377 NAME 'dcmProxyUpstreamURL'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE )
 
-attributetype ( 1.2.40.0.13.1.15.110.3.378 NAME 'dcmRejectIfNoUserIdentity'
+attributetype ( 1.2.40.0.13.1.15.110.3.100000 NAME 'dcmRejectIfNoUserIdentity'
   DESC 'Reject associations if user is not defined; disabled if absent'
   EQUALITY booleanMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE )
 
-attributetype ( 1.2.40.0.13.1.15.110.3.379 NAME 'dcmUserIdentityNegotiatorClass'
+attributetype ( 1.2.40.0.13.1.15.110.3.100001 NAME 'dcmUserIdentityNegotiatorClass'
   DESC 'Specifies User Negotiator Class: "org.dcm4chee.arc.keycloak.KeycloakUserIdentityNegotiator"'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE )
 
-attributetype ( 1.2.40.0.13.1.15.110.3.380 NAME 'dcmUserIdentityType'
+attributetype ( 1.2.40.0.13.1.15.110.3.100002 NAME 'dcmUserIdentityType'
   DESC 'Specifies supported user identity types: "username", "username_passcode", "saml", "kerberos", "jwt"'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
