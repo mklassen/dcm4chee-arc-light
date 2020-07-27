@@ -819,10 +819,10 @@ public class QueryBuilder {
     }
 
     private static Predicate accessControlPredicate(Path<Study> study, String[] accessControlIDs) {
-        String[] a = new String[accessControlIDs.length + 1];
-        a[0] = "*";
-        System.arraycopy(accessControlIDs, 0, a, 1, accessControlIDs.length);
-        return study.get(Study_.accessControlID).in(a);
+        // Clear out any duplicates by using a set
+        Set<String> filter = new HashSet<>(Arrays.asList(accessControlIDs));
+        filter.add("*");
+        return study.get(Study_.accessControlID).in(filter);
     }
 
     public static void seriesAccessControl(List<Predicate> predicates, Path<Series> series, String[] accessControlIDs) {
@@ -831,10 +831,9 @@ public class QueryBuilder {
     }
 
     private static Predicate seriesAccessControlPredicate(Path<Series> series, String[] accessControlIDs) {
-        String[] a = new String[accessControlIDs.length + 1];
-        a[0] = "*";
-        System.arraycopy(accessControlIDs, 0, a, 1, accessControlIDs.length);
-        return series.get(Series_.accessControlID).in(a);
+        Set<String> filter = new HashSet<>(Arrays.asList(accessControlIDs));
+        filter.add("*");
+        return series.get(Series_.accessControlID).in(filter);
     }
 
     private <Z> void seriesLevelPredicates(List<Predicate> predicates, CommonAbstractCriteria criteria,

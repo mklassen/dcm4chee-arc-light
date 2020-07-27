@@ -209,6 +209,7 @@ class StudyQuery extends AbstractQuery {
                 codeCache.findOrCreateEntities(
                     context.getQueryParam().getQueryRetrieveView().getShowInstancesRejectedByCodes())
         );
+        builder.accessControl(predicates, study, context.getAccessControlIDs());
         for (Predicate predicate : extra)
             predicates.add(predicate);
         if (!predicates.isEmpty())

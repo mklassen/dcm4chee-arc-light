@@ -35,59 +35,48 @@
  *  the terms of any one of the MPL, the GPL or the LGPL.
  *
  */
-
 package org.dcm4chee.arc.keycloak;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.dcm4che3.util.StringUtils;
-import org.wildfly.security.http.oidc.OidcSecurityContext;
+import org.dcm4che3.net.pdu.UserIdentityAC;
+import org.keycloak.jose.jws.JWSInput;
+import org.keycloak.jose.jws.JWSInputException;
+import org.keycloak.representations.AccessToken;
 
-import java.util.List;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * @author Vrinda Nayak <vrinda.nayak@j4care.com>
- * @author Gunter Zeilinger <gunterze@gmail.com>
- * @since Sep 2017
+ * @author Martyn Klassen <lmklassen@gmail.com>
+ * @since June 2020
  */
 
-public class KeycloakContext {
+public class ArchiveUserIdentityAC extends UserIdentityAC {
+    private Set<String> accessControlIDs = new HashSet<String>();
+    private AccessToken accessToken = null;
 
-    private final HttpServletRequest request;
-    private final OidcSecurityContext ksc;
-    public static KeycloakContext valueOf(HttpServletRequest request) {
-        return new KeycloakContext(request);
+    public ArchiveUserIdentityAC(byte[] serverResponse) {
+        super(serverResponse);
     }
 
-    private KeycloakContext(HttpServletRequest req) {
-        request = req;
-        ksc = (OidcSecurityContext) request.getAttribute(OidcSecurityContext.class.getName());
+    public AccessToken getAccessToken() {
+        return accessToken;
     }
 
-    public String getUserName() {
+    public void setAccessToken(String accessTokenString) {
+        try {
+            JWSInput jws = new JWSInput(accessTokenString);
+            this.accessToken = jws.readJsonContent(AccessToken.class);
+        }
+        catch (JWSInputException ignored) {
+        }
 
-        return ksc != null
-                ? ksc.getToken().getClaimValueAsString("preferred_username")
-                : request.getRemoteAddr();
     }
 
-    public boolean isSecured() {
-        return ksc != null;
+    public Set<String> getAccessControlIDs() {
+        return accessControlIDs;
     }
 
-    public boolean isUserInRole(String role) {
-        return ksc != null && AccessControl.isUserInRole(ksc.getTokenString(), role);
-    }
-
-    public String[] getRoles() {
-        return ksc != null ? AccessControl.getRoles(ksc.getToken()).toArray(new String[0]) : new String[0];
-    }
-
-    private List<String> getRoleList() {
-        return (List<String>) getRealmAccess().get("roles");
-    }
-
-    private Map<String, Object> getRealmAccess() {
-        return ksc.getToken().getClaimValue("realm_access", Map.class);
+    public void addAccessControlIDs(Set<String> accessControlIDs) {
+        this.accessControlIDs.addAll(accessControlIDs);
     }
 }
