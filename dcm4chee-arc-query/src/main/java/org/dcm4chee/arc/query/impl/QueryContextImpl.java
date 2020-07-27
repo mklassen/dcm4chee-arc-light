@@ -52,7 +52,7 @@ import org.dcm4che3.util.SafeClose;
 import org.dcm4chee.arc.conf.ArchiveAEExtension;
 import org.dcm4chee.arc.conf.ArchiveDeviceExtension;
 import org.dcm4chee.arc.keycloak.HttpServletRequestInfo;
-import org.dcm4chee.arc.keycloak.AccessControlID;
+import org.dcm4chee.arc.keycloak.ClientRoles;
 import org.dcm4chee.arc.query.QueryService;
 import org.dcm4chee.arc.query.QueryContext;
 import org.dcm4chee.arc.query.util.OrderByTag;
@@ -270,13 +270,18 @@ class QueryContextImpl implements QueryContext {
 
     @Override
     public String [] getAccessControlIDs() {
-        Set<String> accessControlIDs = AccessControlID.generateAccessControlIDs(this.httpRequest);
+        Set<String> clientRoles = ClientRoles.get(this.httpRequest);
         if (this.as != null && this.as.getAAssociateAC() != null) {
             UserIdentityAC userIdentityAC = this.as.getAAssociateAC().getUserIdentityAC();
             if (userIdentityAC instanceof ArchiveUserIdentityAC) {
-                ((ArchiveUserIdentityAC) userIdentityAC).filterRolesByClientRoles(accessControlIDs);
+                clientRoles = ((ArchiveUserIdentityAC) userIdentityAC).filterRolesByClientRoles(clientRoles);
             }
         }
-        return accessControlIDs.toArray(new String[0]);
+        if (clientRoles != null && clientRoles.isEmpty()) {
+            // The user has no client roles, so only '*' studies may be accessed
+            clientRoles.add("*");
+        }
+        // null clientRoles means do not filter
+        return clientRoles != null ? clientRoles.toArray(new String[0]) : new String[0];
     }
 }

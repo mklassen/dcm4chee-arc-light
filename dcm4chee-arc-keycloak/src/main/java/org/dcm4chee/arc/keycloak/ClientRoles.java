@@ -40,7 +40,7 @@ package org.dcm4chee.arc.keycloak;
 
 import org.keycloak.representations.AccessToken;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -48,20 +48,20 @@ import java.util.Set;
  * @since July 2020
  */
 
-public class AccessControlID {
+public class ClientRoles {
 
-    public static Set<String> generateAccessControlIDs(HttpServletRequestInfo request) {
+    public static Set<String> get(HttpServletRequestInfo request) {
 
         if (request != null && request.requestKSC != null) {
-            return generateAccessControlIDs(request.requestKSC.getToken(), null);
+            return get(request.requestKSC.getToken(), null);
         }
 
-        return failure();
+        return null;
     }
 
-    public static Set<String> generateAccessControlIDs(AccessToken token, String client_id) {
+    public static Set<String> get(AccessToken token, String client_id) {
         if (token == null)
-            return failure();
+            return Collections.emptySet();
 
         String clientid = client_id == null
                 ? (token.getOtherClaims().get("azp") == null
@@ -70,18 +70,12 @@ public class AccessControlID {
                 : client_id;
 
         if (clientid == null)
-            return failure();
+            return Collections.emptySet();
 
         AccessToken.Access access = token.getResourceAccess(clientid);
         if (access == null)
-            return failure();
+            return Collections.emptySet();
 
         return access.getRoles();
-    }
-
-    private static Set<String> failure() {
-        Set<String> accessControlIDs = new HashSet<>();
-        accessControlIDs.add("AccessControlNone");
-        return accessControlIDs;
     }
 }
