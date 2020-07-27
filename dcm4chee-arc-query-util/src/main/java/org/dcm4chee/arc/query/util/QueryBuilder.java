@@ -556,10 +556,10 @@ public class QueryBuilder {
         if (accessControlIDs.length == 0)
             return;
 
-        String[] a = new String[accessControlIDs.length + 1];
-        a[0] = "*";
-        System.arraycopy(accessControlIDs, 0, a, 1, accessControlIDs.length);
-        predicates.add(study.get(Study_.accessControlID).in(a));
+        // Clear out any duplicates by using a set
+        Set<String> filter = new HashSet<>(Arrays.asList(accessControlIDs));
+        filter.add("*");
+        predicates.add(study.get(Study_.accessControlID).in(filter));
     }
 
     private <T, Z> List<Predicate> seriesLevelPredicates(List<Predicate> predicates, CriteriaQuery<T> q,
