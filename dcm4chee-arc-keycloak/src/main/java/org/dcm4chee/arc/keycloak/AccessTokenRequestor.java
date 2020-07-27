@@ -57,6 +57,7 @@ import org.dcm4che3.net.WebApplication;
 import org.dcm4chee.arc.event.ArchiveServiceEvent;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
 import org.keycloak.TokenVerifier;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -73,8 +74,10 @@ import org.keycloak.util.JsonSerialization;
 
 import java.io.InputStream;
 import java.security.PublicKey;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.Set;
 
 /**
  * @author Gunter Zeilinger <gunterze@gmail.com>
@@ -92,6 +95,10 @@ public class AccessTokenRequestor {
 
     @Resource
     private ManagedScheduledExecutorService scheduledExecutor;
+
+    public static class KeycloakProvider extends ResteasyJackson2Provider {
+        public KeycloakProvider() {}
+    }
 
     private volatile CachedKeycloak cachedKeycloakClient;
     private volatile CachedPublicKey cachedPublicKey;
@@ -174,12 +181,31 @@ public class AccessTokenRequestor {
         return builder;
     }
 
+    private void parseToken(String accessTokenString, KeycloakClient kc, IdentityConfigurer identityConfigurer) {
+
+        if (identityConfigurer != null) {
+
+            Set<String> accessControlIDs = AccessControl.getTokenAccessControlIDs(accessTokenString, kc);
+
+            identityConfigurer.run(new byte[0],
+                    accessTokenString,
+                    accessControlIDs
+                    );
+        }
+    }
+
     public boolean verifyUsernamePasscode(KeycloakClient kc, String role) throws Exception {
+        return verifyUsernamePasscode(kc, role, null);
+    }
+
+    public boolean verifyUsernamePasscode(KeycloakClient kc, String role, IdentityConfigurer identityConfigurer) throws Exception {
         try (Keycloak keycloak = toKeycloak(kc)) {
             TokenManager tokenManager = keycloak.tokenManager();
-            JWSInput jws = new JWSInput(tokenManager.getAccessToken().getToken());
+            String tokenString = tokenManager.getAccessToken().getToken();
+            JWSInput jws = new JWSInput(tokenString);
             AccessToken token = jws.readJsonContent(AccessToken.class);
-            return role == null || token.getRealmAccess().isUserInRole(role);
+            parseToken(tokenString, kc, identityConfigurer);
+            return AccessControl.isUserInRole(token, role, kc);
         }
     }
 
@@ -192,12 +218,19 @@ public class AccessTokenRequestor {
                 .username(kc.getUserID())
                 .password(kc.getPassword())
                 .grantType(kc.getKeycloakGrantType().name())
-                .resteasyClient(resteasyClientBuilder(kc).build())
+                .resteasyClient(
+                        resteasyClientBuilder(kc)
+                        .register(KeycloakProvider.class, 1000)
+                        .build()
+                )
                 .build();
     }
 
-
     public boolean verifyJWT(String tokenString, KeycloakClient kc, String role) throws Exception {
+        return verifyJWT(tokenString, kc, role, null);
+    }
+
+    public boolean verifyJWT(String tokenString, KeycloakClient kc, String role, IdentityConfigurer identityConfigurer) throws Exception {
         String serverURL = kc.getKeycloakServerURL();
         String realmName = kc.getKeycloakRealm();
         KeycloakUriBuilder authUrlBuilder = KeycloakUriBuilder.fromUri(serverURL);
@@ -211,7 +244,9 @@ public class AccessTokenRequestor {
         PublicKey publicKey = getPublicKey(kid, jwksUrl, kc);
         tokenVerifier.publicKey(publicKey);
         tokenVerifier.verify();
-        return role == null || tokenVerifier.getToken().getRealmAccess().isUserInRole(role);
+        AccessToken token = tokenVerifier.getToken();
+        parseToken(tokenString, kc, identityConfigurer);
+        return role == null || token.getRealmAccess().isUserInRole(role);
     }
 
     private PublicKey getPublicKey(String kid, String jwksUrl, KeycloakClient kc)
@@ -249,7 +284,11 @@ public class AccessTokenRequestor {
             this.keycloak = keycloak;
         }
     }
-    
+
+    public interface IdentityConfigurer {
+        void run(byte[] response, String accessTokenString, Set<String> accessControlIDs);
+    }
+
     public static class AccessTokenWithExpiration {
         final String token;
         final long expiration;

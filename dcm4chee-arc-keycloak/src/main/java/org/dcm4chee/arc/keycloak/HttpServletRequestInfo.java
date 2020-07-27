@@ -41,6 +41,8 @@
 
 package org.dcm4chee.arc.keycloak;
 
+import org.keycloak.KeycloakSecurityContext;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
@@ -58,12 +60,15 @@ public class HttpServletRequestInfo {
     public final String queryString;
     public final String localHost;
     public MediaType contentType;
+    public final KeycloakSecurityContext requestKSC;
+
 
     private HttpServletRequestInfo(HttpServletRequest request) {
         requesterUserID = KeycloakContext.valueOf(request).getUserName();
         requesterHost = request.getRemoteHost();
         requesterPort = request.getRemotePort();
         requestURI = request.getRequestURL().toString();
+        requestKSC = (KeycloakSecurityContext) request.getAttribute(KeycloakSecurityContext.class.getName());
         queryString = request.getQueryString();
         localHost = request.getServerName();
     }
@@ -74,6 +79,7 @@ public class HttpServletRequestInfo {
         this.requesterPort = 0;
         this.requestURI = requestURI;
         this.queryString = queryStr;
+        this.requestKSC = null;
         this.localHost = hostOfURI(requestURI);
     }
 
