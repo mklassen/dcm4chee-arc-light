@@ -48,6 +48,8 @@ import org.dcm4che3.net.service.QueryRetrieveLevel2;
 import org.dcm4che3.util.ReverseDNS;
 import org.dcm4che3.util.SafeClose;
 import org.dcm4che3.util.StringUtils;
+import org.dcm4chee.arc.impl.ArchiveAssociationHandler;
+import org.dcm4chee.arc.keycloak.AccessControl;
 import org.dcm4chee.arc.conf.*;
 import org.dcm4chee.arc.entity.Location;
 import org.dcm4chee.arc.entity.Series;
@@ -198,7 +200,12 @@ class RetrieveContextImpl implements RetrieveContext {
 
     @Override
     public String[] getAccessControlIDs() {
-        return arcAE.getAccessControlIDs();
+        return AccessControl.getAccessControlIDs(
+                arcAE.getAccessControlIDs(),
+                this.httpServletRequestInfo,
+                this.requestAssociation,
+                ArchiveAssociationHandler.keycloakClient(arcAE)
+        );
     }
 
     @Override
