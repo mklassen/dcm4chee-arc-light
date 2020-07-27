@@ -127,4 +127,6 @@ public interface QueryContext {
     void putStorage(String storageID, Storage storage);
 
     void close();
+
+    String [] getAccessControlIDs();
 }
