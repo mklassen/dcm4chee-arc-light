@@ -44,6 +44,6 @@ import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
  * @since June 2020
  */
 
-public class KeycloakProvider extends ResteasyJackson2Provider {
-    public KeycloakProvider() {}
+public class ResteasyKeycloakProvider extends ResteasyJackson2Provider {
+    public ResteasyKeycloakProvider() {}
 }

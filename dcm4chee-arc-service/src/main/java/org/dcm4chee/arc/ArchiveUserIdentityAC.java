@@ -37,9 +37,9 @@
  */
 package org.dcm4chee.arc;
 
+import com.google.common.collect.ImmutableSet;
 import org.dcm4che3.net.pdu.UserIdentityAC;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -56,39 +56,47 @@ public class ArchiveUserIdentityAC extends UserIdentityAC {
         super(serverResponse);
     }
 
-    public Set<String> getRealmRoles() { return realmRoles; }
+    public Set<String> getRealmRoles() {
+        return realmRoles;
+    }
 
     public void addRealmRoles(Set<String> realmRoles) {
         this.realmRoles.addAll(realmRoles);
     }
 
-    public Set<String> getClientRoles() { return clientRoles; }
+    public Set<String> getClientRoles() {
+        return clientRoles;
+    }
 
     public void addClientRoles(Set<String> clientRoles) {
         this.clientRoles.addAll(clientRoles);
     }
 
-    private static boolean filterRoles(Set<String> accepted, Set<String> limit) {
-        if (accepted.isEmpty())
-            accepted.addAll(limit);
-        else if (!limit.isEmpty()) {
-            accepted.retainAll(limit);
-            return !accepted.isEmpty();
+    private static Set<String> filterRoles(Set<String> accepted, Set<String> limit) {
+        Set<String> filtered;
+
+        if (accepted != null) {
+            // Only roles that are accepted and in limit
+            filtered = new HashSet<>(accepted);
+            filtered.retainAll(limit);
+        } else {
+            // null accepted mean no limits have been been defined, so just use limit
+            filtered = new HashSet<>(limit);
         }
-        return true;
+
+        return filtered;
     }
 
     public static Set<String> filterRoles(String[] accepted, Set<String> limit) {
-        Set<String> acceptedRoles = new HashSet<>(Arrays.asList(accepted));
-        filterRoles(acceptedRoles, limit);
-        return acceptedRoles;
+        Set<String> acceptedRoles = ImmutableSet.copyOf(accepted);
+        return filterRoles(acceptedRoles, limit);
     }
 
-    public final boolean filterRolesByClientRoles(Set<String> accepted) {
+    public final Set<String> filterRolesByClientRoles(Set<String> accepted) {
         return filterRoles(accepted, clientRoles);
     }
 
-    public final boolean filterRolesByRealmRoles(Set<String> accepted) {
+    public final Set<String> filterRolesByRealmRoles(Set<String> accepted) {
         return filterRoles(accepted, realmRoles);
     }
 }

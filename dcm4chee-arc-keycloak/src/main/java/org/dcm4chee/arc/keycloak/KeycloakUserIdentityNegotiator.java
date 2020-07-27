@@ -119,7 +119,7 @@ public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiato
                 return userIdentityAC;
         }
 
-        LOG.debug("Unable to authenticate " + username + " without passcode.");
+        LOG.debug("Unable to authenticate {} without passcode", username);
         return null;
     }
 
@@ -146,7 +146,7 @@ public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiato
                 return userIdentityAC;
         }
 
-        LOG.debug("Unable to authenticate " + username + " with passcode.");
+        LOG.debug("Unable to authenticate {} with passcode", username);
         return null;
     }
 
@@ -186,7 +186,7 @@ public class KeycloakUserIdentityNegotiator extends ArchiveUserIdentityNegotiato
         // ResteasyJackson2Provider itself can be registered without issue.
         // The work around is to create a class that extends ResteasyJackson2Provider and can be register with a higher
         // priority than JsonBindingProvider
-        builder.register(KeycloakProvider.class, 1000);
+        builder.register(ResteasyKeycloakProvider.class, 1000);
 
         return builder;
     }

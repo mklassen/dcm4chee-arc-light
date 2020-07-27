@@ -46,8 +46,7 @@ import org.dcm4chee.arc.conf.ArchiveDeviceExtension;
 import org.slf4j.LoggerFactory;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 import static org.dcm4che3.net.WebApplication.ServiceClass.DCM4CHEE_ARC_AET;
 
@@ -103,13 +102,13 @@ public abstract class ArchiveUserIdentityNegotiator implements UserIdentityNegot
         boolean rejectIfNoUserIdentity = true;
 
         Device device = as.getDevice();
-        String[] userTypes = {};
+        List<String> userTypes = Collections.emptyList();
         if (device != null) {
             // Get the ArchiveDevice Extension settings, in case no ArchiveAEExtension exists
             ArchiveDeviceExtension arcDev = device.getDeviceExtension(ArchiveDeviceExtension.class);
             if (arcDev != null) {
                 rejectIfNoUserIdentity = arcDev.isRejectIfNoUserIdentity();
-                userTypes = arcDev.getUserIdentityTypes();
+                userTypes = Arrays.asList(arcDev.getUserIdentityTypes());
             }
 
             // Override with the ArchiveAEExtension settings
@@ -118,7 +117,7 @@ public abstract class ArchiveUserIdentityNegotiator implements UserIdentityNegot
                 ArchiveAEExtension arcAE = ae.getAEExtension(ArchiveAEExtension.class);
                 if (arcAE != null) {
                     rejectIfNoUserIdentity = arcAE.rejectIfNoUserIdentity();
-                    userTypes = arcAE.userIdentityTypes();
+                    userTypes = Arrays.asList(arcAE.userIdentityTypes());
                 }
             }
         } else {
@@ -129,61 +128,62 @@ public abstract class ArchiveUserIdentityNegotiator implements UserIdentityNegot
                     AAssociateRJ.REASON_NO_REASON_GIVEN);
         }
 
-        // All user types are supported unless otherwise specified
-        if (userTypes.length < 1) {
-            userTypes = new String[]{"username", "username_passcode", "saml", "kerberos", "jwt"};
+        // All user types are supported, if not supported types were specified
+        if (userTypes.isEmpty()) {
+            userTypes = Arrays.asList("username", "username_passcode", "saml", "kerberos", "jwt");
         }
 
         ArchiveUserIdentityAC userIdentityAC = null;
         if (userIdentity != null) {
             switch (userIdentity.getType()) {
                 case UserIdentityRQ.USERNAME_PASSCODE:
-                    for (String type : userTypes) {
-                        if (type.contentEquals("username_passcode")) {
-                            userIdentityAC = negotiateUsernamePasscode(userIdentity.getUsername(),
-                                    new String(userIdentity.getPasscode()),
-                                    device, as);
-                            break;
-                        }
+                    if (userTypes.contains("username_passcode")) {
+                        userIdentityAC = negotiateUsernamePasscode(userIdentity.getUsername(),
+                                new String(userIdentity.getPasscode()),
+                                device, as);
+                    }
+                    else {
+                        LOG.debug("USERNAME_PASSCODE authentication not supported");
                     }
                     break;
                 case UserIdentityRQ.USERNAME:
-                    for (String type : userTypes) {
-                        if (type.contentEquals("username")) {
-                            userIdentityAC = negotiateUsername(userIdentity.getUsername(),
-                                    device, as);
-                            break;
-                        }
+                    if (userTypes.contains("username")) {
+                        userIdentityAC = negotiateUsername(userIdentity.getUsername(),
+                                device, as);
+                    }
+                    else {
+                        LOG.debug("USERNAME authentication not supported");
                     }
                     break;
                 case 5: // DICOM Standard JWT not yet added to org.dcm4che3.net.pdu.UserIdentityRQ
-                    for (String type : userTypes) {
-                        if (type.contentEquals("jwt")) {
-                            userIdentityAC = negotiateJWT(new String(userIdentity.getPrimaryField()),
-                                    device, as);
-                            break;
-                        }
+                    if (userTypes.contains("jwt")) {
+                        userIdentityAC = negotiateJWT(new String(userIdentity.getPrimaryField()),
+                                device, as);
+                    }
+                    else {
+                        LOG.debug("JWT authentication not supported");
                     }
                     break;
                 case UserIdentityRQ.KERBEROS:
-                    for (String type : userTypes) {
-                        if (type.contentEquals("jwt")) {
-                            userIdentityAC = negotiateKerberos(new String(userIdentity.getPrimaryField()),
-                                    device, as);
-                            break;
-                        }
+                    if (userTypes.contains("kerberos")) {
+                        userIdentityAC = negotiateKerberos(new String(userIdentity.getPrimaryField()),
+                                device, as);
+                    }
+                    else {
+                        LOG.debug("KERBEROS authentication not supported");
                     }
                     break;
                 case UserIdentityRQ.SAML:
-                    for (String type : userTypes) {
-                        if (type.contentEquals("jwt")) {
-                            userIdentityAC = negotiateSAML(new String(userIdentity.getPrimaryField()),
-                                    device, as);
-                            break;
-                        }
+                    if (userTypes.contains("saml")) {
+                        userIdentityAC = negotiateSAML(new String(userIdentity.getPrimaryField()),
+                                device, as);
+                    }
+                    else {
+                        LOG.debug("SAML authentication not supported");
                     }
                     break;
                 default:
+                    LOG.debug("Unrecognized UserIdentityRQ type: {}", userIdentity.getType());
                     break;
             }
         } else {
@@ -197,6 +197,7 @@ public abstract class ArchiveUserIdentityNegotiator implements UserIdentityNegot
                     AAssociateRJ.REASON_NO_REASON_GIVEN);
         }
 
+        // Return the userIdentityAC, may be null if no user was authenticated
         return userIdentityAC;
     }
 
@@ -215,7 +216,7 @@ public abstract class ArchiveUserIdentityNegotiator implements UserIdentityNegot
             }
         }
 
-        // Also add the UI keycloak client
+        // Also add the UI keycloak client, if available
         String authServerURL = System.getProperty("auth-server-url");
         if (authServerURL != null) {
             KeycloakClient keycloakClient = new KeycloakClient();
