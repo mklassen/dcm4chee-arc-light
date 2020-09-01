@@ -37,9 +37,9 @@
  */
 package org.dcm4chee.arc;
 
-import com.google.common.collect.ImmutableSet;
 import org.dcm4che3.net.pdu.UserIdentityAC;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -88,7 +88,7 @@ public class ArchiveUserIdentityAC extends UserIdentityAC {
     }
 
     public static Set<String> filterRoles(String[] accepted, Set<String> limit) {
-        Set<String> acceptedRoles = ImmutableSet.copyOf(accepted);
+        Set<String> acceptedRoles = new HashSet<>(Arrays.asList(accepted));
         return filterRoles(acceptedRoles, limit);
     }
 
