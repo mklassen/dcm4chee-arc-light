@@ -258,7 +258,6 @@ public class ArchiveServiceImpl implements ArchiveService {
                 arcdev.getStorePermissionCacheStaleTimeoutSeconds() * 1000L);
         storePermissionCache.setMaxSize(arcdev.getStorePermissionCacheSize());
         Patient.setShowPatientInfo(arcdev.showPatientInfoInSystemLog());
-        associationHandler.setUserIdNegotiator(arcdev.getUserIdentityNegotiator());
     }
 
     private void mergeSoftwareVersions() {

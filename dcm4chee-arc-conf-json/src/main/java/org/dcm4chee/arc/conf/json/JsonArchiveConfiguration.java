@@ -45,7 +45,6 @@ import org.dcm4che3.conf.json.ConfigurationDelegate;
 import org.dcm4che3.conf.json.JsonConfigurationExtension;
 import org.dcm4che3.conf.json.JsonReader;
 import org.dcm4che3.conf.json.JsonWriter;
-import org.dcm4che3.conf.ldap.LdapUtils;
 import org.dcm4che3.data.Attributes;
 import org.dcm4che3.data.Code;
 import org.dcm4che3.data.Issuer;
@@ -101,9 +100,6 @@ public class JsonArchiveConfiguration extends JsonConfigurationExtension {
         writer.writeNotDef("dcmDeleteUPSFetchSize", arcDev.getDeleteUPSFetchSize(), 100);
         writer.writeNotNullOrDef("dcmDeleteUPSCompletedDelay", arcDev.getDeleteUPSCompletedDelay(), null);
         writer.writeNotNullOrDef("dcmDeleteUPSCanceledDelay", arcDev.getDeleteUPSCanceledDelay(), null);
-        writer.writeNotDef("dcmRejectIfNoUserIdentity", arcDev.isRejectIfNoUserIdentity(), false);
-        writer.writeNotNullOrDef("dcmUserIdentityNegotiatorClass", arcDev.getUserIdentityNegotiatorClass(), null);
-        writer.writeNotEmpty("dcmUserIdentityType", arcDev.getUserIdentityTypes());
         writer.writeNotNullOrDef("dcmOverwritePolicy", arcDev.getOverwritePolicy(), OverwritePolicy.NEVER);
         writer.writeNotDef("dcmRecordAttributeModification", arcDev.isRecordAttributeModification(), true);
         writer.writeNotNullOrDef("dcmBulkDataSpoolDirectory",
@@ -1128,8 +1124,6 @@ public class JsonArchiveConfiguration extends JsonConfigurationExtension {
         writer.writeNotNullOrDef("dcmPurgeInstanceRecordsDelay", arcAE.getPurgeInstanceRecordsDelay(), null);
         writer.writeNotNullOrDef("dcmStoreAccessControlID", arcAE.getStoreAccessControlID(), null);
         writer.writeNotEmpty("dcmAccessControlID", arcAE.getAccessControlIDs());
-        writer.writeNotNull("dcmRejectIfNoUserIdentity", arcAE.getRejectIfNoUserIdentity());
-        writer.writeNotEmpty("dcmUserIdentityType", arcAE.getUserIdentityTypes());
         writer.writeNotNullOrDef("dcmOverwritePolicy", arcAE.getOverwritePolicy(), null);
         writer.writeNotNullOrDef("dcmRecordAttributeModification", arcAE.getRecordAttributeModification(), null);
         writer.writeNotNullOrDef("dcmQueryRetrieveViewID", arcAE.getQueryRetrieveViewID(), null);
@@ -1309,15 +1303,6 @@ public class JsonArchiveConfiguration extends JsonConfigurationExtension {
                     break;
                 case "dcmDeleteUPSCanceledDelay":
                     arcDev.setDeleteUPSCanceledDelay(Duration.valueOf(reader.stringValue()));
-                    break;
-                case "dcmRejectIfNoUserIdentity":
-                    arcDev.setRejectIfNoUserIdentity(reader.booleanValue());
-                    break;
-                case "dcmUserIdentityNegotiatorClass":
-                    arcDev.setUserIdentityNegotiatorClass(reader.stringValue());
-                    break;
-                case "dcmUserIdentityType":
-                    arcDev.setUserIdentityTypes(reader.stringArray());
                     break;
                 case "dcmOverwritePolicy":
                     arcDev.setOverwritePolicy(OverwritePolicy.valueOf(reader.stringValue()));
@@ -3631,12 +3616,6 @@ public class JsonArchiveConfiguration extends JsonConfigurationExtension {
                     break;
                 case "dcmAccessControlID":
                     arcAE.setAccessControlIDs(reader.stringArray());
-                    break;
-                case "dcmRejectIfNoUserIdentity":
-                    arcAE.setRejectIfNoUserIdentity(reader.booleanValue());
-                    break;
-                case "dcmUserIdentityType":
-                    arcAE.setUserIdentityTypes(reader.stringArray());
                     break;
                 case "dcmOverwritePolicy":
                     arcAE.setOverwritePolicy(OverwritePolicy.valueOf(reader.stringValue()));

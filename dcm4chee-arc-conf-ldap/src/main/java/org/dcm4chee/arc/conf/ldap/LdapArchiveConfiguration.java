@@ -117,11 +117,6 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
                 ext.getDeleteUPSCompletedDelay(), null);
         LdapUtils.storeNotNullOrDef(ldapObj, attrs, "dcmDeleteUPSCanceledDelay",
                 ext.getDeleteUPSCanceledDelay(), null);
-        LdapUtils.storeNotDef(ldapObj, attrs, "dcmRejectIfNoUserIdentity",
-                ext.isRejectIfNoUserIdentity(), false);
-        LdapUtils.storeNotNullOrDef(ldapObj, attrs, "dcmUserIdentityNegotiatorClass",
-                ext.getUserIdentityNegotiatorClass(), null);
-        LdapUtils.storeNotEmpty(ldapObj, attrs, "dcmUserIdentityType", ext.getUserIdentityTypes());
         LdapUtils.storeNotNullOrDef(ldapObj, attrs, "dcmOverwritePolicy",
                 ext.getOverwritePolicy(), OverwritePolicy.NEVER);
         LdapUtils.storeNotDef(ldapObj, attrs, "dcmRecordAttributeModification", ext.isRecordAttributeModification(), true);
@@ -497,9 +492,6 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
         ext.setDeleteUPSFetchSize(LdapUtils.intValue(attrs.get("dcmDeleteUPSFetchSize"), 100));
         ext.setDeleteUPSCompletedDelay(toDuration(attrs.get("dcmDeleteUPSCompletedDelay"), null));
         ext.setDeleteUPSCanceledDelay(toDuration(attrs.get("dcmDeleteUPSCanceledDelay"), null));
-        ext.setRejectIfNoUserIdentity(LdapUtils.booleanValue(attrs.get("dcmRejectIfNoUserIdentity"), false));
-        ext.setUserIdentityNegotiatorClass(LdapUtils.stringValue(attrs.get("dcmUserIdentityNegotiatorClass"), null));
-        ext.setUserIdentityTypes(LdapUtils.stringArray(attrs.get("dcmUserIdentityType")));
         ext.setOverwritePolicy(LdapUtils.enumValue(OverwritePolicy.class, attrs.get("dcmOverwritePolicy"), OverwritePolicy.NEVER));
         ext.setRecordAttributeModification(LdapUtils.booleanValue(attrs.get("dcmRecordAttributeModification"), true));
         ext.setBulkDataSpoolDirectory(
@@ -832,15 +824,6 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
         LdapUtils.storeDiffObject(ldapObj, mods, "dcmDeleteUPSCanceledDelay",
                 aa.getDeleteUPSCanceledDelay(),
                 bb.getDeleteUPSCanceledDelay(), null);
-        LdapUtils.storeDiff(ldapObj, mods, "dcmRejectIfNoUserIdentity",
-                aa.isRejectIfNoUserIdentity(), bb.isRejectIfNoUserIdentity(), false);
-        LdapUtils.storeDiffObject(ldapObj, mods, "dcmUserIdentityNegotiatorClass",
-                aa.getUserIdentityNegotiatorClass(),
-                bb.getUserIdentityNegotiatorClass(),
-                null);
-        LdapUtils.storeDiff(ldapObj, mods, "dcmUserIdentityType",
-                aa.getUserIdentityTypes(),
-                bb.getUserIdentityTypes());
         LdapUtils.storeDiffObject(ldapObj, mods, "dcmOverwritePolicy",
                 aa.getOverwritePolicy(),
                 bb.getOverwritePolicy(), OverwritePolicy.NEVER);
@@ -1466,9 +1449,6 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
         LdapUtils.storeNotNullOrDef(ldapObj, attrs, "dcmStoreAccessControlID",
                 ext.getStoreAccessControlID(), null);
         LdapUtils.storeNotEmpty(ldapObj, attrs, "dcmAccessControlID", ext.getAccessControlIDs());
-        LdapUtils.storeNotNullOrDef(ldapObj, attrs, "dcmRejectIfNoUserIdentity",
-                ext.getRejectIfNoUserIdentity(), null);
-        LdapUtils.storeNotEmpty(ldapObj, attrs, "dcmUserIdentityType", ext.getUserIdentityTypes());
         LdapUtils.storeNotNullOrDef(ldapObj, attrs, "dcmOverwritePolicy", ext.getOverwritePolicy(), null);
         LdapUtils.storeNotNullOrDef(ldapObj, attrs, "dcmRecordAttributeModification",
                 ext.getRecordAttributeModification(), null);
@@ -1631,8 +1611,6 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
         ext.setPurgeInstanceRecordsDelay(toDuration(attrs.get("dcmPurgeInstanceRecordsDelay"), null));
         ext.setStoreAccessControlID(LdapUtils.stringValue(attrs.get("dcmStoreAccessControlID"), null));
         ext.setAccessControlIDs(LdapUtils.stringArray(attrs.get("dcmAccessControlID")));
-        ext.setRejectIfNoUserIdentity(LdapUtils.booleanValue(attrs.get("dcmRejectIfNoUserIdentity"), null));
-        ext.setUserIdentityTypes(LdapUtils.stringArray(attrs.get("dcmUserIdentityType")));
         ext.setOverwritePolicy(LdapUtils.enumValue(OverwritePolicy.class, attrs.get("dcmOverwritePolicy"), null));
         ext.setRecordAttributeModification(LdapUtils.booleanValue(attrs.get("dcmRecordAttributeModification"), null));
         ext.setBulkDataSpoolDirectory(LdapUtils.stringValue(attrs.get("dcmBulkDataSpoolDirectory"), null));
@@ -1796,10 +1774,6 @@ class LdapArchiveConfiguration extends LdapDicomConfigurationExtension {
                 aa.getStoreAccessControlID(), bb.getStoreAccessControlID(), null);
         LdapUtils.storeDiff(ldapObj, mods, "dcmAccessControlID",
                 aa.getAccessControlIDs(), bb.getAccessControlIDs());
-        LdapUtils.storeDiffObject(ldapObj, mods, "dcmRejectIfNoUserIdentity",
-                aa.getRejectIfNoUserIdentity(), bb.getRejectIfNoUserIdentity(), null);
-        LdapUtils.storeDiff(ldapObj, mods, "dcmUserIdentityType",
-                aa.getUserIdentityTypes(), bb.getUserIdentityTypes());
         LdapUtils.storeDiffObject(ldapObj, mods, "dcmOverwritePolicy",
                 aa.getOverwritePolicy(), bb.getOverwritePolicy(), null);
         LdapUtils.storeDiffObject(ldapObj, mods, "dcmRecordAttributeModification",
