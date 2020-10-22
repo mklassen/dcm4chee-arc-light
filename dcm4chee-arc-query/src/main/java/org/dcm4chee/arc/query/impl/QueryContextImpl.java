@@ -279,6 +279,7 @@ class QueryContextImpl implements QueryContext {
         }
         if (clientRoles != null && clientRoles.isEmpty()) {
             // The user has no client roles, so only '*' studies may be accessed
+            // To ensure that at least one accessControlID is present so they do not see everything
             clientRoles.add("*");
         }
         // null clientRoles means do not filter

@@ -77,7 +77,7 @@ public class ArchiveAssociationHandler extends AssociationHandler {
             throws IOException {
         ArchiveAEExtension arcAE = as.getApplicationEntity().getAEExtension(ArchiveAEExtension.class);
         if (arcAE != null) {
-            // Only validate user if userIdentiy has not already been negotiated
+            // Only validate user if userIdentity has not already been negotiated
             if (userIdentity == null) {
                 NegotiatedIdentity identity = new NegotiatedIdentity();
                 if (!validateUserIdentity(as, arcAE, rq.getUserIdentityRQ(), identity)) {
