@@ -195,20 +195,20 @@ class RetrieveContextImpl implements RetrieveContext {
 
     @Override
     public String[] getAccessControlIDs() {
-        String [] accessContolIDs = arcAE.getAccessControlIDs();
+        String [] accessControlIDs = arcAE.getAccessControlIDs();
         if (null != requestAssociation)
         {
             AAssociateAC ac = requestAssociation.getAAssociateAC();
             if (null != ac) {
                 UserIdentityAC userIdentityAC = ac.getUserIdentityAC();
                 if (userIdentityAC instanceof ArchiveUserIdentityAC) {
-                    Set<String> set = new HashSet<>(Arrays.asList(accessContolIDs));
+                    Set<String> set = new HashSet<>(Arrays.asList(accessControlIDs));
                     ((ArchiveUserIdentityAC) userIdentityAC).filterRolesByClientRoles(set);
-                    accessContolIDs = (String[]) set.toArray();
+                    accessControlIDs = (String[]) set.toArray();
                 }
             }
         }
-        return accessContolIDs;
+        return accessControlIDs;
     }
 
     @Override
