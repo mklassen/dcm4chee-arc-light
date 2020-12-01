@@ -175,8 +175,8 @@ public class AccessTokenRequestor {
     }
 
     public boolean verifyUsernamePasscode(KeycloakClient kc, String role, IdentityConfigurer identityConfigurer) throws Exception {
-        CachedKeycloak tmp = toCachedKeycloakClient(kc);
-        TokenManager tokenManager = tmp.keycloak.tokenManager();
+        Keycloak tmp = toKeycloak(kc);
+        TokenManager tokenManager = tmp.tokenManager();
         JWSInput jws = new JWSInput(tokenManager.getAccessToken().getToken());
         AccessToken token = jws.readJsonContent(AccessToken.class);
         parseToken(token, kc, identityConfigurer);
