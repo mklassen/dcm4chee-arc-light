@@ -47,6 +47,7 @@ import org.dcm4che3.net.WebApplication;
 import org.dcm4chee.arc.event.ArchiveServiceEvent;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
 import org.keycloak.TokenVerifier;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -80,6 +81,10 @@ public class AccessTokenRequestor {
 
     @Inject
     private Device device;
+
+    public static class KeycloakProvider extends ResteasyJackson2Provider {
+        public KeycloakProvider() {}
+    }
 
     private volatile CachedKeycloak cachedKeycloak;
     private volatile CachedKeycloak cachedKeycloakClient;
@@ -181,7 +186,10 @@ public class AccessTokenRequestor {
                 .password(kc.getPassword())
                 .grantType(kc.getKeycloakGrantType().name())
                 .resteasyClient(resteasyClientBuilder(
-                        kc.getKeycloakServerURL(), kc.isTLSAllowAnyHostname(), kc.isTLSDisableTrustManager()).build())
+                        kc.getKeycloakServerURL(), kc.isTLSAllowAnyHostname(), kc.isTLSDisableTrustManager())
+                        .register(KeycloakProvider.class, 1000)
+                        .build()
+                )
                 .build();
     }
 
