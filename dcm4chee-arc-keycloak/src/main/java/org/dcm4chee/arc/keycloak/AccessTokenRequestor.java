@@ -151,8 +151,8 @@ public class AccessTokenRequestor {
 
         if (identityConfigurer != null) {
             String resource;
-            if (token.getOtherClaims().get("azp") != null)
-                resource = token.getOtherClaims().get("azp").toString();
+            if (token.getIssuedFor() != null)
+                resource = token.getIssuedFor();
             else if (kc != null)
                 resource = kc.getKeycloakRealm();
             else
