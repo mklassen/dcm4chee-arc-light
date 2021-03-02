@@ -204,7 +204,7 @@ class RetrieveContextImpl implements RetrieveContext {
                 if (userIdentityAC instanceof ArchiveUserIdentityAC) {
                     Set<String> set = new HashSet<>(Arrays.asList(accessControlIDs));
                     ((ArchiveUserIdentityAC) userIdentityAC).filterRolesByClientRoles(set);
-                    accessControlIDs = (String[]) set.toArray();
+                    accessControlIDs = set.toArray(new String[set.size()]);
                 }
             }
         }
