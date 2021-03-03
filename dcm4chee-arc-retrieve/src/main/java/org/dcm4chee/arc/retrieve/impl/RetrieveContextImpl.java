@@ -57,6 +57,7 @@ import org.dcm4chee.arc.entity.Series;
 import org.dcm4chee.arc.retrieve.*;
 import org.dcm4chee.arc.storage.Storage;
 import org.dcm4chee.arc.keycloak.HttpServletRequestInfo;
+import org.dcm4chee.arc.keycloak.ClientRoles;
 import org.dcm4chee.arc.store.InstanceLocations;
 import org.dcm4chee.arc.store.UpdateLocation;
 import org.dcm4chee.arc.ArchiveUserIdentityAC;
@@ -195,20 +196,25 @@ class RetrieveContextImpl implements RetrieveContext {
 
     @Override
     public String[] getAccessControlIDs() {
-        String [] accessControlIDs = arcAE.getAccessControlIDs();
+        Set<String> accessControlIDSet = new HashSet<>(Arrays.asList(arcAE.getAccessControlIDs()));
+        Set<String> httpRequestAccessControlIDset = ClientRoles.get(this.httpServletRequestInfo);
+        if(httpRequestAccessControlIDset != null)
+            accessControlIDSet.addAll(httpRequestAccessControlIDset);
+
         if (null != requestAssociation)
         {
             AAssociateAC ac = requestAssociation.getAAssociateAC();
             if (null != ac) {
                 UserIdentityAC userIdentityAC = ac.getUserIdentityAC();
+
                 if (userIdentityAC instanceof ArchiveUserIdentityAC) {
-                    Set<String> set = new HashSet<>(Arrays.asList(accessControlIDs));
-                    ((ArchiveUserIdentityAC) userIdentityAC).filterRolesByClientRoles(set);
-                    accessControlIDs = set.toArray(new String[set.size()]);
+                    accessControlIDSet.addAll(
+                            ((ArchiveUserIdentityAC) userIdentityAC).getClientRoles()
+                    );
                 }
             }
         }
-        return accessControlIDs;
+        return accessControlIDSet.toArray(new String[0]);
     }
 
     @Override
