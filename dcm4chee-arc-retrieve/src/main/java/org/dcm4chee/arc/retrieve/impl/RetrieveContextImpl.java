@@ -51,6 +51,7 @@ import org.dcm4che3.net.service.QueryRetrieveLevel2;
 import org.dcm4che3.util.ReverseDNS;
 import org.dcm4che3.util.SafeClose;
 import org.dcm4che3.util.StringUtils;
+import org.dcm4chee.arc.UserAccessControl;
 import org.dcm4chee.arc.conf.*;
 import org.dcm4chee.arc.entity.Location;
 import org.dcm4chee.arc.entity.Series;
@@ -198,39 +199,11 @@ class RetrieveContextImpl implements RetrieveContext {
     public String[] getAccessControlIDs() {
         Set<String> arcAEAccessControlIDSet = new HashSet<>(Arrays.asList(arcAE.getAccessControlIDs()));
 
-        Set<String> accessControlIDSet = new HashSet<>();
-
-        // Assign roles found in the HTTP request, if any
-        Set<String> httpRequestAccessControlIDset = ClientRoles.get(this.httpServletRequestInfo);
-        if(httpRequestAccessControlIDset != null)
-            accessControlIDSet.addAll(httpRequestAccessControlIDset);
-
-        // Assign roles found in the DICOM association, if any
-        if (null != requestAssociation)
-        {
-            AAssociateAC ac = requestAssociation.getAAssociateAC();
-            if (null != ac) {
-                UserIdentityAC userIdentityAC = ac.getUserIdentityAC();
-
-                if (userIdentityAC instanceof ArchiveUserIdentityAC) {
-                    accessControlIDSet.addAll(
-                            ((ArchiveUserIdentityAC) userIdentityAC).getClientRoles()
-                    );
-                }
-            }
-        }
-
-        // Filter roles to only include those that are defined for AE (if any are defined for AE)
-        if(arcAEAccessControlIDSet.size() > 0)
-            accessControlIDSet = ClientRoles.filterRoles(accessControlIDSet, arcAEAccessControlIDSet);
-
-        if (accessControlIDSet.isEmpty()) {
-            // The user has no client roles, so only '*' studies may be accessed
-            // To ensure that at least one accessControlID is present so they do not see everything
-            accessControlIDSet.add("*");
-        }
-
-        return accessControlIDSet.toArray(new String[0]);
+        return UserAccessControl.getAccessControlIDs(
+                arcAEAccessControlIDSet,
+                this.httpServletRequestInfo,
+                this.requestAssociation
+        );
     }
 
     @Override
