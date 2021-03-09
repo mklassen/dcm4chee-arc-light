@@ -41,6 +41,7 @@ package org.dcm4chee.arc.keycloak;
 import org.keycloak.representations.AccessToken;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -77,5 +78,20 @@ public class ClientRoles {
             return Collections.emptySet();
 
         return access.getRoles();
+    }
+
+    public static Set<String> filterRoles(Set<String> accepted, Set<String> limit) {
+        Set<String> filtered;
+
+        if (accepted != null) {
+            // Only roles that are accepted and in limit
+            filtered = new HashSet<>(accepted);
+            filtered.retainAll(limit);
+        } else {
+            // null accepted mean no limits have been been defined, so just use limit
+            filtered = new HashSet<>(limit);
+        }
+
+        return filtered;
     }
 }

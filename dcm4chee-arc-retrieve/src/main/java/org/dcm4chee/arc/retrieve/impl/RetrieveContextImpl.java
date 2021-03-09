@@ -196,11 +196,16 @@ class RetrieveContextImpl implements RetrieveContext {
 
     @Override
     public String[] getAccessControlIDs() {
-        Set<String> accessControlIDSet = new HashSet<>(Arrays.asList(arcAE.getAccessControlIDs()));
+        Set<String> arcAEAccessControlIDSet = new HashSet<>(Arrays.asList(arcAE.getAccessControlIDs()));
+
+        Set<String> accessControlIDSet = new HashSet<>();
+
+        // Assign roles found in the HTTP request, if any
         Set<String> httpRequestAccessControlIDset = ClientRoles.get(this.httpServletRequestInfo);
         if(httpRequestAccessControlIDset != null)
             accessControlIDSet.addAll(httpRequestAccessControlIDset);
 
+        // Assign roles found in the DICOM association, if any
         if (null != requestAssociation)
         {
             AAssociateAC ac = requestAssociation.getAAssociateAC();
@@ -214,6 +219,17 @@ class RetrieveContextImpl implements RetrieveContext {
                 }
             }
         }
+
+        // Filter roles to only include those that are defined for AE (if any are defined for AE)
+        if(arcAEAccessControlIDSet.size() > 0)
+            accessControlIDSet = ClientRoles.filterRoles(accessControlIDSet, arcAEAccessControlIDSet);
+
+        if (accessControlIDSet.isEmpty()) {
+            // The user has no client roles, so only '*' studies may be accessed
+            // To ensure that at least one accessControlID is present so they do not see everything
+            accessControlIDSet.add("*");
+        }
+
         return accessControlIDSet.toArray(new String[0]);
     }
 
