@@ -56,6 +56,36 @@
       <role-name>${auth-user-role:user}</role-name>
     </auth-constraint>
   </security-constraint>
+
+  <security-constraint>
+    <!--
+     Only admin users should be allowed access to CTRL-RS
+       (Start/Stop/Reload Archive)
+    -->
+    <web-resource-collection>
+      <web-resource-name>dcm4chee-arc-rs-ctrl</web-resource-name>
+      <url-pattern>/ctrl/*</url-pattern>
+      <http-method-omission>OPTIONS</http-method-omission>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>${super-user-role:admin}</role-name>
+    </auth-constraint>
+  </security-constraint>
+
+  <security-constraint>
+    <!--
+     Users in reload group should be allowed reload the archive
+    -->
+    <web-resource-collection>
+      <web-resource-name>dcm4chee-arc-rs-ctrl-reload</web-resource-name>
+      <url-pattern>/ctrl/reload</url-pattern>
+      <http-method-omission>OPTIONS</http-method-omission>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>${reload-user-role:${super-user-role}}</role-name>
+    </auth-constraint>
+  </security-constraint>
+
   <login-config>
     <auth-method>KEYCLOAK</auth-method>
     <realm-name>${realm-name:dcm4che}</realm-name>
