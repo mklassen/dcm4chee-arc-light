@@ -96,17 +96,32 @@ public class AccessControl {
             }
         }
 
-        // Filter roles to only include those that are defined for AE (if any are defined for AE)
-        if (arcAEAccessControlIDs.length > 0) {
-            accessControlIDSet.retainAll(Arrays.asList(arcAEAccessControlIDs));
+        // if datacare role in accessControlIDSet
+        if(accessControlIDSet.contains(System.getProperty("datacare-user-role", "datacare"))){
+            // if there are any AE access control IDs, they take precedence. Assign them and return.
+            if(arcAEAccessControlIDs.length > 0){
+                accessControlIDSet.clear();
+                accessControlIDSet.addAll(Arrays.asList(arcAEAccessControlIDs));
+            }
+            else{
+                // Return empty array.
+                // No accessControlID filters will be added to queries and user will see all datasets
+                return new String[0];
+            }
         }
+        else {
 
-        if (accessControlIDSet.isEmpty()) {
-            // The user has no client roles, so only '*' studies may be accessed
-            // To ensure that at least one accessControlID is present so they do not see everything
-            accessControlIDSet.add("*");
+            // Filter roles to only include those that are defined for AE (if any are defined for AE)
+            if (arcAEAccessControlIDs.length > 0) {
+                accessControlIDSet.retainAll(Arrays.asList(arcAEAccessControlIDs));
+            }
+
+            if (accessControlIDSet.isEmpty()) {
+                // The user has no client roles, so only '*' studies may be accessed
+                // To ensure that at least one accessControlID is present so they do not see everything
+                accessControlIDSet.add("*");
+            }
         }
-
         return accessControlIDSet.toArray(new String[0]);
     }
 }
