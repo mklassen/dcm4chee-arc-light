@@ -117,6 +117,8 @@ class RetrieveContextImpl implements RetrieveContext {
     private CopyToRetrieveCacheTask copyToRetrieveCacheTask;
     private final List<UpdateLocation> updateLocations = new ArrayList<>();
 
+    private boolean ignoreUserAccessControl = false;
+
     RetrieveContextImpl(RetrieveService retrieveService, ArchiveAEExtension arcAE, String localAETitle,
                         QueryRetrieveView qrView) {
         this.retrieveService = retrieveService;
@@ -193,7 +195,7 @@ class RetrieveContextImpl implements RetrieveContext {
 
     @Override
     public String[] getAccessControlIDs() {
-        return AccessControl.getAccessControlIDs(
+        return this.isIgnoreUserAccessControl() ? arcAE.getAccessControlIDs() : AccessControl.getAccessControlIDs(
                 arcAE.getAccessControlIDs(),
                 this.httpServletRequestInfo,
                 this.requestAssociation
@@ -712,5 +714,15 @@ class RetrieveContextImpl implements RetrieveContext {
     @Override
     public void decrementNumberOfMatches() {
         numberOfMatches--;
+    }
+
+    @Override
+    public boolean isIgnoreUserAccessControl(){
+        return ignoreUserAccessControl;
+    }
+
+    @Override
+    public void setIgnoreUserAccessControl(boolean ignoreUserAccessControl){
+        this.ignoreUserAccessControl = ignoreUserAccessControl;
     }
 }

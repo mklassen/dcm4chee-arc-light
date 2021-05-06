@@ -276,4 +276,8 @@ public interface RetrieveContext extends Closeable {
     boolean isStorageVerificationOnRetrieve();
 
     void decrementNumberOfMatches();
+
+    boolean isIgnoreUserAccessControl();
+
+    void setIgnoreUserAccessControl(boolean ignoreUserAccessControl);
 }
