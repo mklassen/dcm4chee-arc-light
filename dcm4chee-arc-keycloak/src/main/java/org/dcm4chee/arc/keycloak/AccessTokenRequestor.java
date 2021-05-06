@@ -170,9 +170,10 @@ public class AccessTokenRequestor {
                 resource = kc.getKeycloakRealm();
 
             Set<String> resourceAccessRoles = AccessControl.parseToken(token, resource);
+            Set<String> realmRoles = token.getRealmAccess() != null ? token.getRealmAccess().getRoles() : Collections.emptySet();;
 
             identityConfigurer.run(new byte[0],
-                    token.getRealmAccess().getRoles(),
+                    realmRoles,
                     resourceAccessRoles);
         }
     }
@@ -187,7 +188,7 @@ public class AccessTokenRequestor {
         JWSInput jws = new JWSInput(tokenManager.getAccessToken().getToken());
         AccessToken token = jws.readJsonContent(AccessToken.class);
         parseToken(token, kc, identityConfigurer);
-        return role == null || token.getRealmAccess().isUserInRole(role);
+        return role == null || (token.getRealmAccess() != null && token.getRealmAccess().isUserInRole(role));
     }
 
     private Keycloak toKeycloak(KeycloakClient kc) throws Exception {
