@@ -134,7 +134,6 @@ public class StgCmtManagerImpl implements StgCmtManager {
     public void calculateResult(StgCmtContext ctx, Sequence refSopSeq) {
         int numRefSOPs = refSopSeq.size();
         try (RetrieveContext retrCtx = retrieveService.newRetrieveContext(ctx.getLocalAET(), refSopSeq)) {
-            retrCtx.setIgnoreUserAccessControl(true);
             retrieveService.calculateMatches(retrCtx);
             for (Attributes refSOP : refSopSeq) {
                 checkRefSop(ctx, retrCtx, refSOP, numRefSOPs);
@@ -160,7 +159,6 @@ public class StgCmtManagerImpl implements StgCmtManager {
             throws IOException {
         try (RetrieveContext retrCtx = retrieveService.newRetrieveContext(
                 ctx.getLocalAET(), studyIUID, seriesIUID, sopIUID) ) {
-            retrCtx.setIgnoreUserAccessControl(true);
             if (!retrieveService.calculateMatches(retrCtx)) {
                 return false;
             }
