@@ -112,32 +112,21 @@ public class AccessControl {
 
         // if datacare role in accessControlIDSet
         if(accessControlIDSet.contains(System.getProperty("datacare-user-role", "datacare"))){
-            // if there are any archive AE AccessControlIDs, they take precedence.
-            if(!arcAEAccessControlIDSet.isEmpty()){
-                // datacare role present --> empty set of token-derived accessControlIDs
-                accessControlIDSet.clear();
-                // restrict with archive AE accessControlIDs
+            // datacare role present --> empty set of token-derived accessControlIDs
+            accessControlIDSet.clear();
+        }
+
+        if(!arcAEAccessControlIDSet.isEmpty()){
+            // Filter roles to only include those that are defined for AE (if any are defined for AE)
+            if (accessControlIDSet.size() > 0) {
+                accessControlIDSet.retainAll(arcAEAccessControlIDSet);
+            }
+            // if there are no accessControlIDs obtained from token, use arcAEAccessControlIDs in their place
+            else {
                 accessControlIDSet.addAll(arcAEAccessControlIDSet);
             }
-            else{
-                // datacare role present --> empty set of token-derived accessControlIDs
-                // No accessControlID filters will be added to queries and user will see all datasets
-                return new String[0];
-            }
         }
-        else {
-            if (!arcAEAccessControlIDSet.isEmpty()) {
 
-                // Filter roles to only include those that are defined for AE (if any are defined for AE)
-                if (accessControlIDSet.size() > 0) {
-                    accessControlIDSet.retainAll(arcAEAccessControlIDSet);
-                }
-                // if there are no accessControlIDs obtained from token, use arcAEAccessControlIDs in their place
-                else {
-                    accessControlIDSet.addAll(arcAEAccessControlIDSet);
-                }
-            }
-        }
         return accessControlIDSet.toArray(new String[0]);
     }
 }
