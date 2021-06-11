@@ -55,7 +55,8 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.FileAttribute;
-import java.util.concurrent.ThreadLocalRandom;
+import java.time.Duration;
+import java.util.concurrent.*;
 
 /**
  * @author Gunter Zeilinger <gunterze@gmail.com>
@@ -132,7 +133,30 @@ public class FileSystemStorage extends AbstractStorage {
 
     @Override
     public boolean isAccessable() {
-        return checkMountFilePath == null || Files.notExists(checkMountFilePath);
+        // Use timeout to handle network filesystems with unresponsive server
+        final Duration timeout = Duration.ofSeconds(5);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        final Future<Boolean> handler = executor.submit(new Callable() {
+            @Override
+            public Boolean call() {
+                return checkMountFilePath == null || Files.notExists(checkMountFilePath);
+            }
+        });
+
+        boolean accessible;
+
+        try {
+            accessible = handler.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (Exception e){
+            handler.cancel(true);
+            accessible = false;
+        }
+
+        executor.shutdownNow();
+
+        return accessible;
+
     }
 
     @Override
