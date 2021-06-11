@@ -56,7 +56,7 @@ import java.util.Set;
 public class AccessControl {
     public static Set<String> parseToken(AccessToken token, String client_id) {
         if (token == null)
-            return Collections.emptySet();
+            return null;
 
         String resource_id = token.getIssuedFor();
         if (resource_id == null) {
@@ -76,10 +76,16 @@ public class AccessControl {
     public static String[] getAccessControlIDs(String[] arcAEAccessControlIDs, HttpServletRequestInfo httpServletRequestInfo, Association requestAssociation) {
 
         Set<String> accessControlIDSet = new HashSet<>();
+        Set<String> arcAEAccessControlIDSet = new HashSet<>(Arrays.asList(arcAEAccessControlIDs));
 
         // Assign roles found in the HTTP request, if any
-        if (httpServletRequestInfo != null && httpServletRequestInfo.requestKSC != null) {
-            accessControlIDSet.addAll(parseToken(httpServletRequestInfo.requestKSC.getToken(), null));
+        if (httpServletRequestInfo != null) {
+            if (httpServletRequestInfo.requestKSC != null) {
+                accessControlIDSet.addAll(parseToken(httpServletRequestInfo.requestKSC.getToken(), null));
+                // Logged-in user has no client roles, so only '*' studies may be accessed
+                // To ensure that at least one accessControlID is present so they do not see everything
+                accessControlIDSet.add("*");
+            }
         }
 
         // Assign roles found in the DICOM association, if any
@@ -92,19 +98,33 @@ public class AccessControl {
                     accessControlIDSet.addAll(
                             ((ArchiveUserIdentityAC) userIdentityAC).getClientRoles()
                     );
+                    // The user has no client roles, so only '*' studies may be accessed
+                    // To ensure that at least one accessControlID is present so they do not see everything
+                    accessControlIDSet.add("*");
                 }
             }
         }
 
-        // Filter roles to only include those that are defined for AE (if any are defined for AE)
-        if (arcAEAccessControlIDs.length > 0) {
-            accessControlIDSet.retainAll(Arrays.asList(arcAEAccessControlIDs));
+        // Add "*" role to non-empty archive AE AccessControlIDs to retain it
+        if(!arcAEAccessControlIDSet.isEmpty()){
+            arcAEAccessControlIDSet.add("*");
         }
 
-        if (accessControlIDSet.isEmpty()) {
-            // The user has no client roles, so only '*' studies may be accessed
-            // To ensure that at least one accessControlID is present so they do not see everything
-            accessControlIDSet.add("*");
+        // if datacare role in accessControlIDSet
+        if(accessControlIDSet.contains(System.getProperty("datacare-user-role", "datacare"))){
+            // datacare role present --> empty set of token-derived accessControlIDs
+            accessControlIDSet.clear();
+        }
+
+        if(!arcAEAccessControlIDSet.isEmpty()){
+            // Filter roles to only include those that are defined for AE (if any are defined for AE)
+            if (accessControlIDSet.size() > 0) {
+                accessControlIDSet.retainAll(arcAEAccessControlIDSet);
+            }
+            // if there are no accessControlIDs obtained from token, use arcAEAccessControlIDs in their place
+            else {
+                accessControlIDSet.addAll(arcAEAccessControlIDSet);
+            }
         }
 
         return accessControlIDSet.toArray(new String[0]);
