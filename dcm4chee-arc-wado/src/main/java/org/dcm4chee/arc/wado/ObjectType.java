@@ -47,6 +47,8 @@ import org.dcm4chee.arc.retrieve.RetrieveContext;
 import org.dcm4chee.arc.store.InstanceLocations;
 
 import javax.ws.rs.core.MediaType;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -159,8 +161,19 @@ enum ObjectType {
     },
     EncapsulatedMTL(MediaTypes.MODEL_MTL_TYPE, false, false){
         @Override
+        public MediaType[] getRenderedContentTypes() {return null; }
+    },
+    EncapsulatedRaw(MediaTypes.APPLICATION_ZIP_TYPE, false, false){
+        @Override
         public MediaType[] getRenderedContentTypes() {
             return null;
+        }
+
+        @Override
+        public Optional<Map<String, Object>> getResponseHeaders() {
+            Map<String, Object> map = new HashMap<>();
+            map.put("Content-Disposition", "attachment; filename=\"dicom.zip\"");
+            return Optional.of(map);
         }
     },
     EncapsulatedGenozip(MediaTypes.APPLICATION_VND_GENOZIP_TYPE, false, false){
@@ -248,6 +261,9 @@ enum ObjectType {
                 return EncapsulatedOBJ;
             case UID.PrivateDcm4cheEncapsulatedGenozipStorage:
                 return EncapsulatedGenozip;
+            case UID.RawDataStorage:
+                if (EncapsulatedSequenceOutput.isValidInstance(ctx, inst))
+                    return EncapsulatedRaw;
             case UID.PrivateDcm4cheEncapsulatedBzip2VCFStorage:
                 return EncapsulatedVCFBzip2;
             case UID.PrivateDcm4cheEncapsulatedBzip2DocumentStorage:
@@ -261,6 +277,10 @@ enum ObjectType {
 
     public MediaType getDefaultMimeType() {
         return defaultMimeType;
+    }
+
+    public Optional<Map<String, Object>> getResponseHeaders() {
+        return Optional.empty();
     }
 
     public Optional<MediaType> getCompatibleMimeType(MediaType other) {
