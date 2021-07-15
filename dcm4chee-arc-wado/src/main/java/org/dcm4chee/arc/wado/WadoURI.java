@@ -338,12 +338,16 @@ public class WadoURI {
             retrieveWado.fire(ctx);
         });
 
-        ar.resume(Response.ok(entity, mimeType == MediaTypes.APPLICATION_DICOM_TYPE
-                                        ? new MediaType(mimeType.getType(), mimeType.getSubtype(), parameters(inst))
-                                        : mimeType)
+        Response.ResponseBuilder response = Response.ok(entity, mimeType == MediaTypes.APPLICATION_DICOM_TYPE
+                ? new MediaType(mimeType.getType(), mimeType.getSubtype(), parameters(inst))
+                : mimeType)
                 .lastModified(lastModified)
-                .tag(String.valueOf(lastModified.hashCode()))
-                .build());
+                .tag(String.valueOf(lastModified.hashCode()));
+
+        // Append headers if present
+        objectType.getResponseHeaders().ifPresent(headers -> headers.forEach(response::header));
+
+        ar.resume(response.build());
     }
 
     private URI redirectURI(String webAppName) throws ConfigurationException {
@@ -421,6 +425,8 @@ public class WadoURI {
                 return decapsulateVideo(service.openDicomInputStream(ctx, inst));
             case SRDocument:
                 return new DicomXSLTOutput(ctx, inst, mimeType, wadoURL());
+            case EncapsulatedRaw:
+                return new EncapsulatedSequenceOutput(ctx, inst);
         }
         throw new AssertionError("objectType: " + objectType);
     }
