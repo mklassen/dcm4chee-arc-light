@@ -1395,6 +1395,9 @@ public class WadoRS {
             case EncapsulatedBzip2:
                 entity = new BulkdataOutput(ctx, inst, Tag.EncapsulatedDocument);
                 break;
+            case EncapsulatedRaw:
+                entity = new EncapsulatedSequenceOutput(ctx, inst);
+                break;
             default:
                 throw new AssertionError("Unexpected object type: " + objectType);
         }
