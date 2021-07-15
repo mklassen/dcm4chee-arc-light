@@ -356,7 +356,7 @@ public class WadoURI {
             retrieveWado.fire(ctx);
         });
 
-        ar.resume(Response
+        Response.ResponseBuilder response = Response
                 .status(contentRange == null ? Response.Status.OK : Response.Status.PARTIAL_CONTENT)
                 .entity(entity)
                 .type(mimeType == MediaTypes.APPLICATION_DICOM_TYPE
@@ -365,8 +365,12 @@ public class WadoURI {
                 .lastModified(lastModified)
                 .tag(String.valueOf(lastModified.hashCode()))
                 .header("Accept-Ranges", acceptRanges ? "bytes" : "none")
-                .header("Content-Range", contentRange)
-                .build());
+                .header("Content-Range", contentRange);
+
+        // Append headers if present
+        objectType.getResponseHeaders().ifPresent(headers -> headers.forEach(response::header));
+
+        ar.resume(response.build());
     }
 
     private boolean ignorePatientUpdates() {
@@ -427,6 +431,8 @@ public class WadoURI {
                 return new CompressedPixelDataOutput(ctx, inst, this.contentRange);
             case SRDocument:
                 return new DicomXSLTOutput(ctx, inst, mimeType, wadoURL());
+            case EncapsulatedRaw:
+                return new EncapsulatedSequenceOutput(ctx, inst);
         }
         throw new AssertionError("objectType: " + objectType);
     }
