@@ -6840,6 +6840,21 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
                     this.applicationEntities.aes = aesTemp.map((ae:Aet)=>{
                         return new SelectDropdown(ae.dicomAETitle,ae.dicomAETitle,ae.dicomDescription,undefined,undefined,ae);
                     });
+                    if(!this.studyWebService.selectedWebService) {
+                        let defaultWebApp;
+                        this.permissionService.getAppRequest().getDcm4cheeArc().subscribe(res=>{
+                            if(_.hasIn(res, "default-web-app")){
+                                defaultWebApp = _.get(res, "default-web-app");
+                            }
+                        },err=>{
+                            console.log("Error getting defaultWebApp from /dcm4chee-arc/ui2/rs/dcm4chee-arc",err);
+                        });
+                        if (defaultWebApp) {
+                            console.log("defaultWebApp setting is ", defaultWebApp);
+                            this.studyWebService.seletWebAppFromWebAppName(defaultWebApp);
+                            console.log("successfully selected ", defaultWebApp, " as web app");
+                        }
+                    }
                     this.setTemplateToFilter();
                     this.initExporters(2);
                     this.initRjNotes(2);

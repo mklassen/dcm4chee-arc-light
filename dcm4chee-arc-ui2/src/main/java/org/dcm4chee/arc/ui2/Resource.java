@@ -86,6 +86,7 @@ public class Resource {
         sb.append("\",\"super-user-role\":\"").append(System.getProperty("super-user-role", "root"));
         sb.append("\",\"management-http-port\":").append(
                 intSystemProperty("jboss.management.http.port", 9990));
+        sb.append(",\"default-web-app\":\"").append(System.getProperty("default-web-app", "DCM4CHEE")).append("\"");
         sb.append(",\"management-https-port\":").append(
                 intSystemProperty("jboss.management.https.port", 9993));
         String managementURL = System.getProperty("jboss.ui.management.url");
