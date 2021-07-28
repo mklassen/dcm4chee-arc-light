@@ -42,6 +42,11 @@ export class PermissionService {
                         return this.checkMenuTabAccess(url)
             });
     }
+
+    public getAppRequest(){
+        return this.appRequest;
+    }
+
     checkSuperAdmin(url){
         if((this.mainservice.user && this.mainservice.user.su) || (!this.mainservice.user.user && this.mainservice.user.roles.length === 0))
             return true;
