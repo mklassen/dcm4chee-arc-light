@@ -4617,6 +4617,22 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
                     // this.aets = aetsTemp;
                     // console.log("ates",this.aets);
                     // this.getDevices();
+
+                    if(!this.studyWebService.selectedWebService) {
+                        let defaultWebApp;
+                        this.appService.getDcm4cheeArc().subscribe(res=>{
+                            if(_.hasIn(res, "default-web-app")){
+                                defaultWebApp = _.get(res, "default-web-app");
+                            }
+                            console.log("defaultWebApp not found");
+                        },err=>{
+                            console.log("Error getting defaultWebApp from /dcm4chee-arc/ui2/rs/dcm4chee-arc",err);
+                        });
+                        if (defaultWebApp) {
+                            console.log("defaultWebApp=", defaultWebApp);
+                            this.studyWebService.seletWebAppFromWebAppName(defaultWebApp);
+                        }
+                    }
                     this.setSchema();
                     this.initExporters(2);
                     this.initRjNotes(2);
