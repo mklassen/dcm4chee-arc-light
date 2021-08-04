@@ -250,6 +250,18 @@ public class RetrieveServiceImpl implements RetrieveService {
     }
 
     @Override
+    public RetrieveContext newRetrieveContextMultiSelect(String localAET, String[] studyUIDs,
+                                                         String[] seriesUIDs, String[] objectUIDs){
+        ArchiveAEExtension arcAE = device.getApplicationEntity(localAET, true).getAEExtension(ArchiveAEExtension.class);
+        RetrieveContext ctx = new RetrieveContextImpl(this, arcAE, localAET, arcAE.getQueryRetrieveView());
+        ctx.setStudyInstanceUIDs(studyUIDs);
+        ctx.setSeriesInstanceUIDs(seriesUIDs);
+        ctx.setSopInstanceUIDs(objectUIDs);
+        ctx.setQueryRetrieveLevel(QueryRetrieveLevel2.IMAGE);
+        return ctx;
+    }
+
+    @Override
     public RetrieveContext newRetrieveContext(String localAET, String studyUID, String seriesUID, String objectUID) {
         ArchiveAEExtension arcAE = device.getApplicationEntity(localAET, true).getAEExtension(ArchiveAEExtension.class);
         RetrieveContext ctx = new RetrieveContextImpl(this, arcAE, localAET, arcAE.getQueryRetrieveView());
