@@ -72,6 +72,7 @@ import {MwlDicom} from "../../models/mwl-dicom";
 import {MppsDicom} from "../../models/mpps-dicom";
 import {ChangeDetectorRef} from "@angular/core";
 import {Observable, of} from "rxjs";
+import {forkJoin} from "rxjs";
 import {DiffDicom} from "../../models/diff-dicom";
 import {UwlDicom} from "../../models/uwl-dicom";
 import {filter, map, switchMap} from "rxjs/operators";
@@ -265,6 +266,7 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
             new SelectDropdown("toggle_checkboxes", $localize `:@@toggle_checkboxes:Toggle checkboxes`, $localize `:@@toggle_checkboxes_for_selection:Toggle checkboxes for selection`),
             new SelectDropdown("export_object", $localize `:@@study.short_export_object:Export selections`, $localize `:@@study.export_object:Export selected studies, series or instances`),
             new SelectDropdown("retrieve_object", $localize `:@@retrieve_selections:Retrieve selections`, $localize `:@@retrieve_selected_studies_series_instances:Retrieve selected studies, series or instances`),
+            new SelectDropdown("download_selected", $localize `:@@study.short_download_selected:Download selections`, $localize `:@@study.download_selected:Download selected studies, series or instances`),
             new SelectDropdown("reject_object", $localize `:@@study.short_reject_object:Reject selections`, $localize `:@@study.reject_object:Reject selected studies, series or instances`),
             new SelectDropdown("restore_object", $localize `:@@study.short_restore_object:Restore selections`, $localize `:@@study.restore_object:Restore selected studies, series or instances`),
             new SelectDropdown("update_access_control_id_to_selections", $localize `:@@study.short_update_access_control_id_to_selections:Access Control ID to selections`, $localize `:@@study.update_access_control_id_to_selections:Updated Access Control ID to selected studies`),
@@ -683,6 +685,9 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
         }
         if (e === "retrieve_object")
             this.retrieveObject(undefined,undefined,this.selectedElements);
+        if(e === "download_selected"){
+            this.download_selected(this.selectedElements);
+        }
         if(e === "reject_object" || e === "restore_object"){
             this.rejectRestoreMultipleObjects();
         }
@@ -6076,6 +6081,156 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
             {},
             ""
         );
+    }
+
+    download_selected(multipleObjects?: SelectionActionElement) {
+        let token;
+
+        this.confirm({
+            content: $localize`:@@study.short_download_selected:Download selections` + '?'
+        }).subscribe((ok) => {
+            if (ok) {
+                this.service.getTokenService(this.studyWebService).subscribe((response) => {
+                    if (!this.appService.global.notSecure) {
+                        token = response.token;
+                    }
+                });
+                let patients = multipleObjects.preActionElements.getAttrs('patient');
+                let studies = multipleObjects.preActionElements.getAttrs('study')
+                    .map(attrs => attrs['0020000D'].Value[0]);
+                let series = multipleObjects.preActionElements.getAttrs('series')
+                    .map(attrs => attrs['0020000E'].Value[0]);
+                let instances = multipleObjects.preActionElements.getAttrs('instance')
+                    .map(attrs => attrs['00080018'].Value[0]);
+
+                console.log(`Sizes: patients:${patients.length} studies:${studies.length} series:${series.length} instances:${instances.length}`);
+                console.log(`Objects: patients:${patients} studies:${studies} series:${series} instances:${instances}`);
+
+
+                (() => {
+                    if (patients.length > 0) {
+                        // If there are patients selected,
+                        // query the studies of each selected patient and append to selected studies
+                        // since querying is only performed at a single level
+
+                        return forkJoin(
+                            multipleObjects.preActionElements.getAttrs('patient').map(attrs => {
+                                return this.service.getStudies({
+                                        'includedefaults': false,
+                                        'includefield': '0020000D',
+                                        'PatientID': attrs['00100020'].Value[0],
+                                        'IssuerOfPatientID': attrs['00100021'].Value[0],
+                                    },
+                                    this.studyWebService.selectedWebService
+                                ).pipe(map(
+                                    value => {
+                                        // extract study instance UID of each series
+                                        return value.map(attr => attr['0020000D'].Value[0]);
+                                    }
+                                ));
+                            })
+                        ).pipe(map(
+                            s => {
+                                // flatten and concatenate with selected series
+                                studies = studies.concat(
+                                    [].concat.apply([], s)
+                                );
+                                return studies;
+                            }
+                        ));
+                    } else {
+                        return of(studies);
+                    }
+                })().subscribe(
+                    studies => {
+                        (() => {
+                            patients = [];
+                            console.log(`Parsed1 Sizes: patients:${patients.length} studies:${studies.length} series:${series.length} instances:${instances.length}`);
+                            console.log(`Parsed1 Objects: patients:${patients} studies:${studies} series:${series} instances:${instances}`);
+
+                            if (studies.length > 0 && series.length > 0) {
+                                // If both studies and series are selected,
+                                // query the series of each selected study and append to selected series
+                                // since querying is only performed at a single level
+
+                                return forkJoin(
+                                    studies.map(study => {
+                                        return this.service.getSeries({
+                                                'includedefaults': false,
+                                                'includefield': '0020000E',
+                                                'StudyInstanceUID': study,
+                                            },
+                                            this.studyWebService.selectedWebService
+                                        ).pipe(map(
+                                            value => {
+                                                // extract series instance UID of each series
+                                                return value.map(attr => attr['0020000E'].Value[0]);
+                                            }
+                                        ));
+                                    })
+                                ).pipe(map(
+                                    s => {
+                                        // flatten and concatenate with selected series
+                                        series = series.concat(
+                                            [].concat.apply([], s)
+                                        );
+                                        return series;
+                                    }
+                                ));
+                            } else {
+                                return of(series);
+                            }
+                        })().subscribe(
+                            series => {
+
+                                if (studies.length > 0 && series.length > 0) {
+                                    // handled query the series of each selected study and append to selected series above
+                                    // empty the studies list
+                                    studies = [];
+                                }
+
+                                if ((studies.length + series.length + patients.length) > 0 && instances.length > 0) {
+                                    this.appService.showError(
+                                        $localize`:@@study.download_selected_instances_with_other_levels:
+                                        Cannot select entire patient/series/studies together with individual instances
+                                        (images) for download. In order to continue with the download, either de-select all
+                                        instances, or de-select all series/studies/patients and leave instances selected.`);
+                                    return;
+                                }
+
+                                let url = j4care.getUrlFromDcmWebApplication(
+                                    this.studyWebService.selectedWebService,
+                                    this.appService.baseUrl
+                                ) + '/multiple';
+
+                                console.log(`Parsed2 Sizes: patients:${patients.length} studies:${studies.length} series:${series.length} instances:${instances.length}`);
+                                console.log(`Parsed2 Objects: patients:${patients} studies:${studies} series:${series} instances:${instances}`);
+
+                                let objects;
+                                if (studies.length > 0) {
+                                    objects = studies;
+                                    url += '?level=study';
+                                } else if (series.length > 0) {
+                                    objects = series;
+                                    url += '?level=series';
+                                } else {
+                                    objects = instances;
+                                    url += '?level=instance';
+                                }
+                                url += '&accept=application/zip';
+                                url += '&objectUID=' + objects.join('&objectUID=');
+
+                                if (!this.appService.global.notSecure) {
+                                    j4care.downloadFile(`${url}&access_token=${token}`, 'dicom.zip');
+                                } else {
+                                    j4care.downloadFile(`${url}`, 'dicom.zip');
+                                }
+                            }
+                        );
+                    }
+                );
+            }
+        });
     }
 
     retrieveObject(level:DicomLevel, object?, multipleObjects?:SelectionActionElement){
