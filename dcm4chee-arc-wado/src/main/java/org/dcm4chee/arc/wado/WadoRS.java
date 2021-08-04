@@ -52,6 +52,7 @@ import org.dcm4che3.media.RecordType;
 import org.dcm4che3.net.ApplicationEntity;
 import org.dcm4che3.net.Device;
 import org.dcm4che3.net.WebApplication;
+import org.dcm4che3.net.service.QueryRetrieveLevel2;
 import org.dcm4che3.util.*;
 import org.dcm4che3.ws.rs.MediaTypes;
 import org.dcm4chee.arc.conf.ArchiveAEExtension;
@@ -76,6 +77,7 @@ import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.stream.JsonGenerator;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
@@ -355,6 +357,78 @@ public class WadoRS {
             @Suspended AsyncResponse ar) {
         retrieve(Target.FrameThumbnail, studyUID, seriesUID, objectUID,
                 new FrameList(frameList).frames, null, null, ar);
+    }
+
+    @GET
+    @Path("/multiple")
+    public void retrieveMultiple(
+            @QueryParam("level")
+            @NotNull
+            @Pattern(regexp = "study|series|instance")
+                    String level,
+
+            @QueryParam("objectUID")
+            @NotNull
+                    List<String> objectUIDs,
+
+            @Suspended AsyncResponse ar) {
+
+        logRequest();
+
+        if (aet.equals(getApplicationEntity().getAETitle()))
+            validateWebApp();
+
+        try {
+            // @Inject does not work:
+            // org.jboss.resteasy.spi.LoggableFailure: Unable to find contextual data of type: javax.servlet.http.HttpServletRequest
+            // s. https://issues.jboss.org/browse/RESTEASY-903
+            HttpServletRequest request = ResteasyProviderFactory.getContextData(HttpServletRequest.class);
+            final RetrieveContext ctx = service.newRetrieveContext(aet, null, null, null);
+
+            Target target;
+            String[] objectUIDsArray = objectUIDs.toArray(new String[0]);
+
+            switch (level){
+                case "study":
+                    ctx.setStudyInstanceUIDs(objectUIDsArray);
+                    ctx.setQueryRetrieveLevel(QueryRetrieveLevel2.STUDY);
+                    target = Target.Study;
+                    break;
+                case "series":
+                    ctx.setSeriesInstanceUIDs(objectUIDsArray);
+                    ctx.setQueryRetrieveLevel(QueryRetrieveLevel2.SERIES);
+                    target = Target.Series;
+                    break;
+                default:
+                    ctx.setSopInstanceUIDs(objectUIDsArray);
+                    ctx.setQueryRetrieveLevel(QueryRetrieveLevel2.IMAGE);
+                    target = Target.Instance;
+                    break;
+            }
+
+            Output output = target.output(this);
+
+            if (request.getHeader(HttpHeaders.IF_MODIFIED_SINCE) == null
+                    && request.getHeader(HttpHeaders.IF_UNMODIFIED_SINCE) == null
+                    && request.getHeader(HttpHeaders.IF_MATCH) == null
+                    && request.getHeader(HttpHeaders.IF_NONE_MATCH) == null) {
+                buildResponse(target, null, null, ar, output, ctx, null);
+                return;
+            }
+
+            Date lastModified = service.getLastModified(ctx);
+            if (lastModified == null)
+                throw new WebApplicationException(
+                        errResponse("Last Modified date is null.", Response.Status.NOT_FOUND));
+            Response.ResponseBuilder respBuilder = evaluatePreConditions(lastModified);
+
+            if (respBuilder == null)
+                buildResponse(target, null, null, ar, output, ctx, lastModified);
+            else
+                ar.resume(respBuilder.build());
+        } catch (Exception e) {
+            ar.resume(e);
+        }
     }
 
     Output bulkdataPath() {
