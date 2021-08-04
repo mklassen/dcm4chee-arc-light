@@ -113,6 +113,9 @@ public interface RetrieveService {
             HttpServletRequest request, String localAET, String[] studyUIDs,
             String[] seriesUIDs, String[] objectUIDs);
 
+    RetrieveContext newRetrieveContextMultiSelect(String localAET, String[] studyUIDs,
+                                                  String[] seriesUIDs, String[] objectUIDs);
+
     RetrieveContext newRetrieveContext(String localAET, String studyUID, String seriesUID, String objectUID);
 
     RetrieveContext newRetrieveContext(String localAET, Sequence refSopSeq);
