@@ -53,6 +53,7 @@ import org.dcm4che3.media.RecordType;
 import org.dcm4che3.net.ApplicationEntity;
 import org.dcm4che3.net.Device;
 import org.dcm4che3.net.WebApplication;
+import org.dcm4che3.net.service.QueryRetrieveLevel2;
 import org.dcm4che3.util.*;
 import org.dcm4che3.ws.rs.MediaTypes;
 import org.dcm4chee.arc.conf.*;
@@ -72,12 +73,15 @@ import org.jboss.resteasy.plugins.providers.multipart.OutputPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
+
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.stream.JsonGenerator;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
@@ -427,6 +431,84 @@ public class WadoRS {
         checkMultipartRelatedAcceptable();
         ignorePatientUpdate = true;
         return Output.BULKDATA;
+    }
+
+    @GET
+    @Path("/multiple")
+    public void retrieveMultiple(
+            @QueryParam("level")
+            @NotNull
+            @Pattern(regexp = "study|series|instance")
+                    String level,
+
+            @QueryParam("objectUID")
+            @NotNull
+                    List<String> objectUIDs,
+
+            @Suspended AsyncResponse ar) {
+
+        logRequest();
+        ApplicationEntity ae = getApplicationEntity();
+        validateAcceptedUserRoles(ae.getAEExtensionNotNull(ArchiveAEExtension.class));
+        if (aet.equals(ae.getAETitle()))
+            validateWebAppServiceClass();
+
+        if (objectUIDs.size() == 0)
+            throw new WebApplicationException(Response.Status.NOT_ACCEPTABLE);
+
+        try {
+            final RetrieveContext ctx = service.newRetrieveContext(aet, null, null, null);
+
+            Target target;
+            String[] objectUIDsArray = objectUIDs.toArray(new String[0]);
+
+            switch (level){
+                case "study":
+                    ctx.setStudyInstanceUIDs(objectUIDsArray);
+                    ctx.setQueryRetrieveLevel(QueryRetrieveLevel2.STUDY);
+                    target = Target.Study;
+                    break;
+                case "series":
+                    ctx.setSeriesInstanceUIDs(objectUIDsArray);
+                    ctx.setQueryRetrieveLevel(QueryRetrieveLevel2.SERIES);
+                    target = Target.Series;
+                    break;
+                default:
+                    ctx.setSopInstanceUIDs(objectUIDsArray);
+                    ctx.setQueryRetrieveLevel(QueryRetrieveLevel2.IMAGE);
+                    target = Target.Instance;
+                    break;
+            }
+
+            Output output = target.output(this);
+
+            if (request.getHeader(HttpHeaders.IF_MODIFIED_SINCE) == null
+                    && request.getHeader(HttpHeaders.IF_UNMODIFIED_SINCE) == null
+                    && request.getHeader(HttpHeaders.IF_MATCH) == null
+                    && request.getHeader(HttpHeaders.IF_NONE_MATCH) == null) {
+                buildResponse(target, null, null, ar, output, ctx, null);
+                return;
+            }
+
+            LOG.debug("Query Last Modified date of {}", target);
+            Date lastModified = service.getLastModified(ctx, ignorePatientUpdate);
+            if (lastModified == null)
+                throw new WebApplicationException(
+                        errResponse("Last Modified date is null.", Response.Status.NOT_FOUND));
+            LOG.debug("Last Modified date: {}", lastModified);
+            Response.ResponseBuilder respBuilder = evaluatePreConditions(lastModified);
+
+            if (respBuilder == null) {
+                LOG.debug("Preconditions are not met - build response");
+                buildResponse(target, null, null, ar, output, ctx, lastModified);
+            } else {
+                Response response = respBuilder.build();
+                LOG.debug("Preconditions are met - return status {}", response.getStatus());
+                ar.resume(response);
+            }
+        } catch (Exception e) {
+            ar.resume(e);
+        }
     }
 
     Output bulkdataPath() {
