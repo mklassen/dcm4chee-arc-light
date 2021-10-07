@@ -723,6 +723,10 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
                 this.resetSetSelectionObject();
                 break;
             }
+            case 'download_selected': {
+                this.download_selected(this.selectedElements);
+                break;
+            }
             case 'uncheck_selection_study':{
                 this.resetSetSelectionObject(['study'],false);
                 this.checkboxFunctions = false;
@@ -1032,15 +1036,7 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
                 this.updatePatientDemographics(model);
             }
             if(id.action === "download"){
-                if(id.level === "instance"){
-                    if(id.mode === "uncompressed"){
-                        this.downloadURL(model);
-                    }else{
-                        this.downloadURL(model, "*");
-                    }
-                }else{
-                    this.downloadZip(model,id.level,id.mode);
-                }
+                this.downloadZip(model, id.level, id.mode);
             }
             if(id.action === "reject"){
                 if(id.level === "study"){
@@ -1913,56 +1909,21 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
     }
 
     downloadZip(object, level, mode) {
-        this.confirm({
-            content: $localize `:@@download_this_leveltext:Download this ${this.service.getLevelText(level)}:levelText:`,
-            doNotSave:true,
-            form_schema:[
-                [
-                    [
-                        {
-                            tag:"label",
-                            text:$localize `:@@compress:Compress`
-                        },
-                        {
-                            tag:"checkbox",
-                            filterKey:"compressed"
-                        }
-                    ],
-                    [
-                        {
-                            tag:"label",
-                            text:$localize `:@@including_dicomdir:Include DICOMDIR`
-                        },
-                        {
-                            tag:"checkbox",
-                            filterKey:"includingdicomdir"
-                        }
-                    ]
-                ]
-            ],
-            result: {
-                schema_model: {}
-            },
-            saveButton: $localize `:@@download:Download`
-        }).subscribe((ok)=>{
-            if(ok){
-                let token;
+                let token, url, fileName;
                 let param = {
                     accept:'application/zip'
                 };
                 // dicomdir:true
                 console.log("url",this.service.getDicomURL(mode, this.studyWebService.selectedWebService));
-                let url = this.service.studyURL(object.attrs, this.studyWebService.selectedWebService);
-                let fileName = this.service.studyFileName(object.attrs);
-                if(_.hasIn(ok,"schema_model.compressed") && _.get(ok,"schema_model.compressed")){
-                    param.accept += ';transfer-syntax=*';
-                }
-                if(_.hasIn(ok,"schema_model.includingdicomdir") && _.get(ok,"schema_model.includingdicomdir")) {
-                    param["dicomdir"] = true;
-                }
-                if(level === 'series'){
+                if (level === 'study') {
+                    url = this.service.studyURL(object.attrs, this.studyWebService.selectedWebService);
+                    fileName = this.service.studyFileName(object.attrs);
+                } else if (level === 'series') {
                     url = this.service.seriesURL(object.attrs, this.studyWebService.selectedWebService);
                     fileName = this.service.seriesFileName(object.attrs);
+                } else if (level === 'instance') {
+                    url = this.service.instanceURL(object.attrs, this.studyWebService.selectedWebService);
+                    fileName = this.service.instanceFileName(object.attrs);
                 }
                 this.service.getTokenService(this.studyWebService).subscribe((response)=>{
                     if(!this.appService.global.notSecure){
@@ -1974,95 +1935,38 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
                         j4care.downloadFile(`${url}?${j4care.objToUrlParams(param)}`,`${fileName}.zip`)
                     }
                 });
-            }
-        });
     };
+
     downloadURL(inst, transferSyntax?:string) {
         let token;
         let url:string = "";
         let fileName = "dcm4che.dcm";
-        this.confirm({
-            content: $localize `:@@download_this_leveltext:Download this ${this.service.getLevelText("instance")}:levelText:`,
-            doNotSave:true,
-            form_schema:[
-                [
-                    [
-                        {
-                            tag:"label",
-                            text:$localize `:@@compress:Compress`
-                        },
-                        {
-                            tag:"checkbox",
-                            filterKey:"compressed"
-                        }
-                    ],
-                    [
-                        {
-                            tag:"label",
-                            text:$localize `:@@including_dicomdir:Include DICOMDIR`
-                        },
-                        {
-                            tag:"checkbox",
-                            filterKey:"includingdicomdir"
-                        }
-                    ]
-                ]
-            ],
-            result: {
-                schema_model: {}
-            },
-            saveButton: $localize `:@@download:Download`
-        }).subscribe((ok)=>{
-            if(ok) {
-                this.service.getTokenService(this.studyWebService).subscribe((response) => {
-                    if (!this.appService.global.notSecure) {
-                        token = response.token;
-                    }
-                    var includeDicomDir = _.hasIn(ok,"schema_model.includingdicomdir") && _.get(ok,"schema_model.includingdicomdir");
-                    let exQueryParams = includeDicomDir === true
-                                            ? {accept: 'application/zip'}
-                                            : {contentType: 'application/dicom'};
-                    var compressed = _.hasIn(ok,"schema_model.compressed") && _.get(ok,"schema_model.compressed");
-                    console.log("keys", Object.keys(inst.wadoQueryParams));
-                    console.log("keys", Object.getOwnPropertyNames(inst.wadoQueryParams));
-                    console.log("keys", inst.wadoQueryParams);
-                    if(includeDicomDir === true){
-                        exQueryParams["dicomdir"] = true;
-                        if(compressed === true)
-                            exQueryParams.accept += ';transfer-syntax=*';
-                        url = this.service.instanceURL(inst.attrs, this.studyWebService.selectedWebService);
-                        fileName = this.service.instanceFileName(inst.attrs);
-                        this.service.getTokenService(this.studyWebService).subscribe((response)=>{
-                            if(!this.appService.global.notSecure){
-                                token = response.token;
-                            }
-                            if(!this.appService.global.notSecure){
-                                j4care.downloadFile(`${url}?${j4care.objToUrlParams(exQueryParams)}&access_token=${token}`,`${fileName}.zip`)
-                            }else{
-                                j4care.downloadFile(`${url}?${j4care.objToUrlParams(exQueryParams)}`,`${fileName}.zip`)
-                            }
-                        });
-                    } else {
-                        if(compressed === true)
-                            exQueryParams["transferSyntax"] = transferSyntax;
-                        this.service.wadoURL(this.studyWebService, inst.wadoQueryParams, exQueryParams).subscribe((urlWebApp: string) => {
-                            if (!this.appService.global.notSecure) {
-                                // WindowRefService.nativeWindow.open(this.wadoURL(inst.wadoQueryParams, exQueryParams) + `&access_token=${token}`);
-                                url = urlWebApp + `&access_token=${token}`;
-                            } else {
-                                // WindowRefService.nativeWindow.open(this.service.wadoURL(this.studyWebService.selectedWebService, inst.wadoQueryParams, exQueryParams));
-                                url = urlWebApp;
-                            }
-                            if (j4care.hasSet(inst, "attrs[00080018].Value[0]")) {
-                                fileName = `${_.get(inst, "attrs[00080018].Value[0]")}.dcm`
-                            }
-                            j4care.downloadFile(url, fileName);
-                        })
-                    }
-                });
+        this.service.getTokenService(this.studyWebService).subscribe((response) => {
+            if (!this.appService.global.notSecure) {
+                token = response.token;
             }
+            let exQueryParams = {
+                contentType: 'application/dicom',
+                transferSyntax: transferSyntax
+            };
+            console.log("keys", Object.keys(inst.wadoQueryParams));
+            console.log("keys", Object.getOwnPropertyNames(inst.wadoQueryParams));
+            console.log("keys", inst.wadoQueryParams);
+            this.service.wadoURL(this.studyWebService, inst.wadoQueryParams, exQueryParams).subscribe((urlWebApp: string) => {
+                if (!this.appService.global.notSecure) {
+                    // WindowRefService.nativeWindow.open(this.wadoURL(inst.wadoQueryParams, exQueryParams) + `&access_token=${token}`);
+                    url = urlWebApp + `&access_token=${token}`;
+                } else {
+                    // WindowRefService.nativeWindow.open(this.service.wadoURL(this.studyWebService.selectedWebService, inst.wadoQueryParams, exQueryParams));
+                    url = urlWebApp;
+                }
+                if (j4care.hasSet(inst, "attrs[00080018].Value[0]")) {
+                    fileName = `${_.get(inst, "attrs[00080018].Value[0]")}.dcm`
+                }
+                j4care.downloadFile(url, fileName);
+            });
         });
-    };
+    }
 
     createQueryParams(offset, limit, filter) {
         let params = {
@@ -7249,6 +7153,16 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
 
     ngAfterContentChecked(): void {
         this.changeDetector.detectChanges();
+    }
+
+    isDownloadSelectedDisabled(): boolean {
+        // "Download selected" button is enabled when at least one patient, study or series is selected.
+        return (
+            this.selectedElements.preActionElements.getSpecificObjectSize('patient') < 1 &&
+            this.selectedElements.preActionElements.getSpecificObjectSize('study') < 1 &&
+            this.selectedElements.preActionElements.getSpecificObjectSize('series') < 1 &&
+            this.selectedElements.preActionElements.getSpecificObjectSize('instance') < 1
+        )
     }
 
 /*    get selectedWebAppService(): DcmWebApp {
