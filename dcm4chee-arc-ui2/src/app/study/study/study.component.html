@@ -152,6 +152,15 @@
                                 (click)="selectionAction('checkbox_functions')"><i
                                 class="ignore_click_outside material-icons">playlist_add_check</i></button>
                     </li>
+                    <li>
+                        <button [disabled]="selectedElements.action || isDownloadSelectedDisabled()"
+                                (click)="selectionAction('download_selected')"
+                                i18n-title="@@title.study.download_selected"
+                                title="Download selected objects"
+                                [ngStyle]="{'color': selectedElements.action || isDownloadSelectedDisabled() ? 'grey' : 'green' }">
+                            <i class="material-icons">get_app</i>
+                        </button>
+                    </li>
                     @if (studyWebService.selectedWebService.dcmWebServiceClass.indexOf("DCM4CHEE_ARC_AET") > -1) {
                         <li>
                             <button [disabled]="selectedElements.action || selectedElements.preActionElements.getSpecificObjectSize('patient') > 0"
