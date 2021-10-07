@@ -1706,7 +1706,7 @@ export class Globalvar {
                 tag:"input",
                 type:"text",
                 filterKey:"PatientName",
-                placeholder:$localize `:@@patient_family_name:Patient family name`,
+                placeholder:$localize `:@@patient_family_name:Patient name`,
                 description:$localize `:@@patient_family_name_tooltip:Order of name components in the search field differs from the rendered person names in the list`
             },
             {
@@ -2491,7 +2491,7 @@ export class Globalvar {
                 tag:"input",
                 type:"text",
                 filterKey:"PatientName",
-                placeholder:$localize `:@@patient_family_name:Patient family name`,
+                placeholder:$localize `:@@patient_family_name:Patient name`,
                 description:$localize `:@@person_family_name_tooltip:Order of name components in the search field differs from the rendered person names in the list`
             },
             {

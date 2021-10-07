@@ -1589,6 +1589,7 @@ export class StudyService {
                     calculatedWidth: "20%",
                     pipe: new DynamicPipe(PersonNamePipe, ["00100010"])
                 }),
+                /*
                 new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@patient_id:Patient ID`,
@@ -1597,6 +1598,8 @@ export class StudyService {
                     widthWeight: 1,
                     calculatedWidth: "20%"
                 }),
+                */
+                /*
                 new TableSchemaElement({
                     type: "pipe",
                     header: $localize `:@@issuer_of_patient:Issuer of Patient`,
@@ -1605,6 +1608,7 @@ export class StudyService {
                     calculatedWidth: "20%",
                     pipe: new DynamicPipe(PatientIssuerPipe, undefined)
                 }),
+                 */
                 new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@birth_date:Birth Date`,
@@ -1621,6 +1625,7 @@ export class StudyService {
                     widthWeight: 0.2,
                     calculatedWidth: "20%"
                 }),
+
                 new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@study.patient_comments:Patient Comments`,
@@ -1988,7 +1993,8 @@ export class StudyService {
                     ],
                     headerDescription: $localize `:@@actions:Actions`,
                     pxWidth: 40
-                }),new TableSchemaElement({
+                }),
+                new TableSchemaElement({
                     type: "actions",
                     header: "",
                     actions: [
@@ -2041,6 +2047,15 @@ export class StudyService {
                     calculatedWidth: "6%"
                 }),
                 new TableSchemaElement({
+                    type: "pipe",
+                    header: $localize `:@@patients_name:Patient's Name`,
+                    headerDescription: $localize `:@@patients_name:Patient's Name`,
+                    widthWeight: 1.5,
+                    calculatedWidth: "20%",
+                    pipe: new DynamicPipe(PersonNamePipe, ["00100010"])
+                }),
+                /*
+                new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@study_id:Study ID`,
                     pathToValue: "[00200010].Value[0]",
@@ -2048,7 +2063,10 @@ export class StudyService {
                     widthWeight: 0.9,
                     calculatedWidth: "20%",
                     cssClass:"border-left"
-                }), new TableSchemaElement({
+                }),
+                */
+                /*
+                new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@study_instance_uid:Study Instance UID`,
                     pathToValue: "[0020000D].Value[0]",
@@ -2056,6 +2074,7 @@ export class StudyService {
                     widthWeight: 2.5,
                     calculatedWidth: "20%"
                 }),
+                */
                 new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@study_date:Study Date`,
@@ -2072,6 +2091,7 @@ export class StudyService {
                     widthWeight: 0.6,
                     calculatedWidth: "20%"
                 }),
+                /*
                 new TableSchemaElement({
                     type: "pipe",
                     header: $localize `:@@study.r._physicians_name:R. Physician's Name`,
@@ -2080,6 +2100,8 @@ export class StudyService {
                     calculatedWidth: "20%",
                     pipe: new DynamicPipe(PersonNamePipe, ["00080090"])
                 }),
+                */
+                /*
                 new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@accession_number:Accession Number`,
@@ -2088,6 +2110,8 @@ export class StudyService {
                     widthWeight: 1,
                     calculatedWidth: "20%"
                 }),
+                 */
+                /*
                 new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@admission_id:Admission ID`,
@@ -2096,6 +2120,7 @@ export class StudyService {
                     widthWeight: 1,
                     calculatedWidth: "20%"
                 }),
+                */
                 new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@modalities:Modalities`,
@@ -2114,7 +2139,7 @@ export class StudyService {
                 }),
                 new TableSchemaElement({
                     type: "value",
-                    header: $localize `:@@number_of_related_series:#S`,
+                    header: $localize `:@@number_of_related_series:# Series`,
                     pathToValue: "[00201206].Value[0]",
                     headerDescription: $localize `:@@number_of_study_related_series:Number of Study Related Series`,
                     widthWeight: 0.3,
@@ -2122,7 +2147,7 @@ export class StudyService {
                 }),
                 new TableSchemaElement({
                     type: "value",
-                    header: $localize `:@@number_of_instances:#I`,
+                    header: $localize `:@@number_of_instances:# Inst.`,
                     pathToValue: "[00201208].Value[0]",
                     headerDescription: $localize `:@@number_of_study_related_instances:Number of Study Related Instances`,
                     widthWeight: 0.3,
