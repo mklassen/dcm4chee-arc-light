@@ -2432,6 +2432,33 @@ export class StudyService {
                     headerDescription: $localize `:@@number_of_study_related_instances:Number of Study Related Instances`,
                     widthWeight: 0.3,
                     calculatedWidth: "20%"
+                }),
+                new TableSchemaElement({
+                    type: "actions",
+                    header: "",
+                    actions: [
+                        {
+                            icon: {
+                                tag: 'span',
+                                cssClass: 'glyphicon glyphicon-save',
+                                text: ''
+                            },
+                            click: (e) => {
+                                actions.call($this, {
+                                    event: "click",
+                                    level: "study",
+                                    action: "download"
+                                }, e);
+                            },
+                            title: $localize `:@@download:Download`,
+                            permission: {
+                                id: 'action-studies-download',
+                                param: 'visible'
+                            }
+                        }
+                    ],
+                    headerDescription: $localize `:@@actions:Actions`,
+                    pxWidth: 40
                 })
             ],
             series: [
@@ -2864,6 +2891,33 @@ export class StudyService {
                     headerDescription: $localize `:@@number_of_series_related_instances:Number of Series Related Instances`,
                     widthWeight: 0.9,
                     calculatedWidth: "20%"
+                }),
+                new TableSchemaElement({
+                    type: "actions",
+                    header: "",
+                    actions: [
+                        {
+                            icon: {
+                                tag: 'span',
+                                cssClass: 'glyphicon glyphicon-save',
+                                text: ''
+                            },
+                            click: (e) => {
+                                actions.call($this, {
+                                    event: "click",
+                                    level: "series",
+                                    action: "download"
+                                }, e);
+                            },
+                            title: $localize `:@@download:Download`,
+                            permission: {
+                                id: 'action-studies-download',
+                                param: 'visible'
+                            }
+                        }
+                    ],
+                    headerDescription: $localize `:@@actions:Actions`,
+                    pxWidth: 40
                 })
             ],
             instance: [
@@ -3124,6 +3178,33 @@ export class StudyService {
                     headerDescription: $localize `:@@number_of_frames:Number of Frames`,
                     widthWeight: 0.3,
                     calculatedWidth: "20%"
+                }),
+                new TableSchemaElement({
+                    type: "actions",
+                    header: "",
+                    actions: [
+                        {
+                            icon: {
+                                tag: 'span',
+                                cssClass: 'glyphicon glyphicon-save',
+                                text: ''
+                            },
+                            click: (e) => {
+                                actions.call($this, {
+                                    event: "click",
+                                    level: "instance",
+                                    action: "download"
+                                }, e);
+                            },
+                            title: $localize `:@@download:Download`,
+                            permission: {
+                                id: 'action-studies-download',
+                                param: 'visible'
+                            }
+                        }
+                    ],
+                    headerDescription: $localize `:@@actions:Actions`,
+                    pxWidth: 40
                 })
             ],
             mwl:[
