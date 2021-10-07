@@ -722,6 +722,10 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
                 this.resetSetSelectionObject();
                 break;
             }
+            case 'download_selected': {
+                this.download_selected(this.selectedElements);
+                break;
+            }
             case 'uncheck_selection_study':{
                 this.resetSetSelectionObject(['study'],false);
                 this.checkboxFunctions = false;
@@ -1912,39 +1916,6 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
     }
 
     downloadZip(object, level, mode) {
-        this.confirm({
-            content: $localize `:@@download_this_leveltext:Download this ${this.service.getLevelText(level)}:levelText:`,
-            doNotSave:true,
-            form_schema:[
-                [
-                    [
-                        {
-                            tag:"label",
-                            text:$localize `:@@compress:Compress`
-                        },
-                        {
-                            tag:"checkbox",
-                            filterKey:"compressed"
-                        }
-                    ],
-                    [
-                        {
-                            tag:"label",
-                            text:$localize `:@@including_dicomdir:Include DICOMDIR`
-                        },
-                        {
-                            tag:"checkbox",
-                            filterKey:"includingdicomdir"
-                        }
-                    ]
-                ]
-            ],
-            result: {
-                schema_model: {}
-            },
-            saveButton: $localize `:@@download:Download`
-        }).subscribe((ok)=>{
-            if(ok){
                 let token;
                 let param = {
                     accept:'application/zip'
@@ -1953,12 +1924,6 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
                 console.log("url",this.service.getDicomURL(mode, this.studyWebService.selectedWebService));
                 let url = this.service.studyURL(object.attrs, this.studyWebService.selectedWebService);
                 let fileName = this.service.studyFileName(object.attrs);
-                if(_.hasIn(ok,"schema_model.compressed") && _.get(ok,"schema_model.compressed")){
-                    param.accept += ';transfer-syntax=*';
-                }
-                if(_.hasIn(ok,"schema_model.includingdicomdir") && _.get(ok,"schema_model.includingdicomdir")) {
-                    param["dicomdir"] = true;
-                }
                 if(level === 'series'){
                     url = this.service.seriesURL(object.attrs, this.studyWebService.selectedWebService);
                     fileName = this.service.seriesFileName(object.attrs);
@@ -1973,9 +1938,8 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
                         j4care.downloadFile(`${url}?${j4care.objToUrlParams(param)}`,`${fileName}.zip`)
                     }
                 });
-            }
-        });
     };
+
     downloadURL(inst, transferSyntax?:string) {
         let token;
         let url:string = "";
@@ -7248,6 +7212,16 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
 
     ngAfterContentChecked(): void {
         this.changeDetector.detectChanges();
+    }
+
+    isDownloadSelectedDisabled(): boolean {
+        // "Download selected" button is enabled when at least one patient, study or series is selected.
+        return (
+            this.selectedElements.preActionElements.getSpecificObjectSize('patient') < 1 &&
+            this.selectedElements.preActionElements.getSpecificObjectSize('study') < 1 &&
+            this.selectedElements.preActionElements.getSpecificObjectSize('series') < 1 &&
+            this.selectedElements.preActionElements.getSpecificObjectSize('instance') < 1
+        )
     }
 
 /*    get selectedWebAppService(): DcmWebApp {
