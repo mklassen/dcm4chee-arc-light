@@ -47,6 +47,7 @@ export class AppComponent implements OnInit {
     hasViewRealm:boolean = false;
     authServerUrl;
     showMenu = false;
+    showEditAccount = false;
     showScrollButton = false;
     currentServerTime;
     currentClockTime;
