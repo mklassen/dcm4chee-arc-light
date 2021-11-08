@@ -212,6 +212,7 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
         placeholder: $localize `:@@actions_for_selections:Actions for selections`,
         options:[
             new SelectDropdown("toggle_checkboxes", $localize `:@@toggle_checkboxes:Toggle checkboxes`, $localize `:@@toggle_checkboxes_for_selection:Toggle checkboxes for selection`),
+            new SelectDropdown("toggle_patient_block", $localize `:@@toggle_patient_block:Toggle patient block`, $localize `:@@toggle_patient_block_detail:Toggle patient block in study-level query results table`),
             new SelectDropdown("export_object",
                 this.internal ? $localize `:@@study.short_export_object:Export selections`:$localize `:@@retrieve_selections:Retrieve selections`,
                 this.internal ? $localize `:@@study.export_object:Export selected studies, series or instances`: $localize `:@@retrieve_selected_objects:Retrieve selected studies, series or instances`),
@@ -492,6 +493,10 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
     actionsSelectionsChanged(e){
         if(e === "toggle_checkboxes"){
             this.tableParam.config.showCheckboxes = !this.tableParam.config.showCheckboxes;
+            this.tableParam.tableSchema  = this.getSchema();
+        }
+        if(e === "toggle_patient_block"){
+            this.tableParam.config.showPatientBlock = !this.tableParam.config.showPatientBlock;
             this.tableParam.tableSchema  = this.getSchema();
         }
         if(e === "export_object"){
@@ -2362,6 +2367,7 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
         this.service.getPatients(filterModel,this.studyWebService.selectedWebService).subscribe((res) => {
             this.patients = [];
             this._filter.filterModel.offset = filterModel.offset;
+            this.tableParam.config.showPatientBlock = true;
             if (_.size(res) > 0){
                 this.setTopToTableHeader();
                 this.patients = res.map((attrs, index) => {
@@ -2420,6 +2426,7 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
     getStudies(filterModel){
         this.cfpLoadingBar.start();
         this.searchCurrentList = "";
+        this.tableParam.config.showPatientBlock = false;
         this.service.getStudies(filterModel, this.studyWebService.selectedWebService)
             .subscribe(res => {
                 this.patients = [];

@@ -87,6 +87,7 @@ export interface TableSchemaConfig {
     headerTop?:string;
     offset?:number;
     showCheckboxes?:boolean;
+    showPatientBlock?:boolean;
 }
 
 export class DynamicPipe{
