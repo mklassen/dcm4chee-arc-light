@@ -24,6 +24,7 @@
         <!--Patient Table 1:-->
         @for (patient of patients|searchDicom:searchList; track patient; let i = $index) {
             <div class="tr" [ngClass]="config?.cssTrClass">
+                @if (config.showPatientBlock) {
                 <div class="patient_block table_item" (mouseenter)="hover_mode = 'patient'"
                      [ngClass]="{'selected':patient.selected}" (click)="onBlockClick(patient)">
                     @for (patient_table of tableSchema.patient; track patient_table) {
@@ -130,6 +131,7 @@
                     }
 
                 </div>
+                }
 
 
                 <!--Studies 2:-->
