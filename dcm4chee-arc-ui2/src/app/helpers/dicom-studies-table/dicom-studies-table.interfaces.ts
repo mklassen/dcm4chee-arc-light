@@ -90,6 +90,7 @@ export interface TableSchemaConfig {
     headerTop?:string;
     offset?:number;
     showCheckboxes?:boolean;
+    showPatientBlock?:boolean;
     attributesHook?:Function;
     dicomAttributesAsSubAttribute?:{key:string};
 }
