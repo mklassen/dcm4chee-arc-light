@@ -106,6 +106,8 @@ import {MetricsService} from "./monitoring/metrics/metrics.service";
 import { WebAppsListComponent } from './configuration/web-apps-list/web-apps-list.component';
 import {WebAppsListService} from "./configuration/web-apps-list/web-apps-list.service";
 import {SearchDicomPipe} from "./pipes/search-dicom.pipe";
+import {DicomTimePipe} from "./pipes/dicom-time.pipe";
+import {DicomDatePipe} from "./pipes/dicom-date.pipe";
 import {ClickOutsideDirective2} from "./helpers/click-outside2.directive";
 import { SelectionsDicomViewComponent } from './study/study/selections-dicom-view/selections-dicom-view.component';
 import {SelectionsDicomViewService} from "./study/study/selections-dicom-view/selections-dicom-view.service";
@@ -132,6 +134,8 @@ import {MatDialogConfig, MatDialogModule} from '@angular/material/dialog';
         ContentDescriptionPipe,
         PatientIssuerPipe,
         PersonNamePipe,
+        DicomTimePipe,
+        DicomDatePipe,
         FormatAttributeValuePipe,
         RemovedotsPipe,
         AttributeListComponent,
@@ -272,6 +276,8 @@ import {MatDialogConfig, MatDialogModule} from '@angular/material/dialog';
         ContentDescriptionPipe,
         PatientIssuerPipe,
         PersonNamePipe,
+        DicomTimePipe,
+        DicomDatePipe,
         ArrayToStringPipe,
         OptionService,
         KeycloakService,

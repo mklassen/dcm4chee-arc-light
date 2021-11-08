@@ -43,6 +43,8 @@ import {FormatAttributeValuePipe} from "../../pipes/format-attribute-value.pipe"
 import {AppService} from "../../app.service";
 import {MwlDicom} from "../../models/mwl-dicom";
 import {DynamicPipePipe} from "../../pipes/dynamic-pipe.pipe";
+import {DicomTimePipe} from "../../pipes/dicom-time.pipe";
+import {DicomDatePipe} from "../../pipes/dicom-date.pipe";
 
 @Injectable()
 export class StudyService {
@@ -2076,20 +2078,20 @@ export class StudyService {
                 }),
                 */
                 new TableSchemaElement({
-                    type: "value",
+                    type: "pipe",
                     header: $localize `:@@study_date:Study Date`,
-                    pathToValue: "[00080020].Value[0]",
                     headerDescription: $localize `:@@study_date:Study Date`,
                     widthWeight: 0.6,
-                    calculatedWidth: "20%"
+                    calculatedWidth: "20%",
+                    pipe: new DynamicPipe(DicomDatePipe, ["00080020",])
                 }),
                 new TableSchemaElement({
-                    type: "value",
+                    type: "pipe",
                     header: $localize `:@@study.study_time:Study Time`,
-                    pathToValue: "[00080030].Value[0]",
                     headerDescription: $localize `:@@study.study_time:Study Time`,
                     widthWeight: 0.6,
-                    calculatedWidth: "20%"
+                    calculatedWidth: "20%",
+                    pipe: new DynamicPipe(DicomTimePipe, ["00080030",])
                 }),
                 /*
                 new TableSchemaElement({
