@@ -90,6 +90,7 @@ public class Resource {
         sb.append(",\"management-https-port\":").append(intSystemProperty("jboss.management.https.port", 9993));
         sb.append(",\"keycloak-use-resource-roles\":\"").append(System.getProperty("keycloak-use-resource-roles", "false")).append("\"");
         sb.append(",\"default-web-app\":\"").append(System.getProperty("default-web-app", "DCM4CHEE")).append("\"");
+        sb.append(",\"documentation-url\":\"").append(System.getProperty("documentation-url", "/docs")).append("\"");
         sb.append("}");
         return sb.toString();
     }
