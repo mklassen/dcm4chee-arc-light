@@ -46,6 +46,7 @@ export class AppComponent implements OnInit {
     hasAdministrator:boolean = false;
     hasViewRealm:boolean = false;
     authServerUrl;
+    docsUrl = '/docs';
     showMenu = false;
     showEditAccount = false;
     showScrollButton = false;
@@ -113,7 +114,12 @@ export class AppComponent implements OnInit {
             if(_.hasIn(res, "dcm4chee-arc-urls[0]")){
                 this.mainservice.baseUrl = _.get(res, "dcm4chee-arc-urls[0]");
             }
+            if (_.hasIn(res, "documentation-url")){
+                this.docsUrl = _.get(res, "documentation-url");
+            }
             console.log("baseUrl=",this.mainservice.baseUrl);
+            console.log("docsUrl=",this.docsUrl);
+
         },err=>{
             console.log("Error on /dcm4chee-arc/ui2/rs/dcm4chee-arc",err);
         });
@@ -303,6 +309,11 @@ export class AppComponent implements OnInit {
             window.open(`//${window.location.hostname}:9990/console`, "_blank");
         }
     }
+
+    navigateToDocs() {
+        window.open(this.docsUrl, "_blank");
+    }
+
     closeFromOutside(){
         if(this.showMenu)
             this.showMenu = false;
