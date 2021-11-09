@@ -88,6 +88,7 @@ public class Resource {
                 intSystemProperty("jboss.management.http.port", 9990));
         sb.append(",\"default-web-app\":\"").append(System.getProperty("default-web-app", "DCM4CHEE")).append("\"");
         sb.append(",\"ui-client-id\":\"").append(System.getProperty("ui-client-id", "dcm4chee-arc-ui")).append("\"");
+        sb.append(",\"documentation-url\":\"").append(System.getProperty("documentation-url", "/docs")).append("\"");
         sb.append(",\"management-https-port\":").append(
                 intSystemProperty("jboss.management.https.port", 9993));
         String managementURL = System.getProperty("jboss.ui.management.url");
