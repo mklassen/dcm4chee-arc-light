@@ -46,6 +46,7 @@ export class AppComponent implements OnInit {
     hasAdministrator:boolean = false;
     hasViewRealm:boolean = false;
     authServerUrl;
+    docsUrl = '/docs';
     showMenu = false;
     showScrollButton = false;
     currentServerTime;
@@ -101,7 +102,14 @@ export class AppComponent implements OnInit {
             console.log("Error on /dcm4chee-arc/ui2/rs/dcm4chee-arc",err);
         });*/
 
-
+        this.appRequests.getDcm4cheeArc().subscribe(res=>{
+            if (_.hasIn(res, "documentation-url")){
+                this.docsUrl = _.get(res, "documentation-url");
+            }
+            console.log("docsUrl=",this.docsUrl);
+        },err=>{
+            console.log("Error on /dcm4chee-arc/ui2/rs/dcm4chee-arc",err);
+        });
 
         if(j4care.hasSet(KeycloakService,"keycloakAuth.token")){
             this.mainservice.updateGlobal("notSecure",false);
@@ -339,6 +347,11 @@ export class AppComponent implements OnInit {
             window.open(`//${window.location.hostname}:9990/console`, "_blank");
         }
     }
+
+    navigateToDocs() {
+        window.open(this.docsUrl, "_blank");
+    }
+
     closeFromOutside(){
         if(this.showMenu)
             this.showMenu = false;
