@@ -13,6 +13,14 @@
         </li>
     </ul>
 </div>
+<div class="config_menu help_menu" style="right: 470px; width: 170px">
+    <div class="user">
+        <span id="helpmenu" style="width: 170px; padding-left: 15px" (click)='navigateToDocs();'>
+            <div class="username" style="">Help</div>
+            <i class="config glyphicon glyphicon-question-sign"></i>
+        </span>
+    </div>
+</div>
 <div class="config_menu">
     <div class="user" *ngIf="user && user.user && user.user != 'anonymous'" (clickOutside)="showUserMenu=false">
         <span (click)="showUserMenu = !showUserMenu" id="usermenu">
