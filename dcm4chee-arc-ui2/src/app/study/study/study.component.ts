@@ -116,6 +116,11 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
     patientAttributes;
     studyAttributes;
     devices;
+    defaultFilterModel = {
+        limit:20,
+        offset:0,
+        includefield:"all"
+    };
     private _filter:StudyFilterConfig = {
         filterSchemaEntry:{
             lineLength:undefined,
@@ -131,11 +136,7 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
         },
         filterEntryModel:{
         },
-        filterModel:{
-            limit:20,
-            offset:0,
-            includefield:"all"
-        },
+        filterModel: {},
         expand:false,
         quantityText:{
             count:$localize `:@@COUNT:COUNT`,
@@ -770,6 +771,7 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
         if(_.hasIn(e,"webApp") && e.webApp === ""){
             this.studyWebService.selectedWebService = undefined;
         }
+        this.onFilterTemplateSet(this.defaultFilterModel);
     }
     onRemoveFromSelection(e){
         console.log("e",e);
@@ -5291,7 +5293,10 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
                         });
                         if (defaultWebApp) {
                             console.log("defaultWebApp=", defaultWebApp);
+                            // set the Web app for initial search
                             this.studyWebService.seletWebAppFromWebAppName(defaultWebApp);
+                            // save the web app for future filter clears/resets
+                            this.defaultFilterModel["webApp"] = this.studyWebService.selectedWebService;
                         }
                     }
                     this.setSchema();
