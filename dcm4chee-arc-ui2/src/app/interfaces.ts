@@ -140,6 +140,7 @@ export interface FilterSchemaElement {
     firstField?:FilterSchemaElement,
     secondField?:FilterSchemaElement,
     convert?:Function;
+    toUpper?:boolean,
     disabled?:boolean;
     cssClass?:string;
     showRefreshIcon?:boolean;

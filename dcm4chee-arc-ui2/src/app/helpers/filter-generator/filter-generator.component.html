@@ -53,8 +53,8 @@
                       <ng-container  *ngSwitchCase="'input'">
                         <input
                                 [disabled]="line[index].disabled"
-                                (ngModelChange)="model[line[index].filterKey] = $event;filterChange($event)"
-                                [(ngModel)]="model[line[index].filterKey]"
+                                (ngModelChange)="model[line[index].filterKey] = line[index]?.toUpper ? $event.toUpperCase() : $event; filterChange($event)"
+                                [ngModel]="model[line[index].filterKey]"
                                 type="text"
                                 [ngStyle]="line[index].style"
                                 title="{{line[index]?.description}}"

@@ -1770,6 +1770,7 @@ export class Globalvar {
                 tag:"input",
                 type:"text",
                 filterKey:"StudyDescription",
+                toUpper: true,
                 description:$localize `:@@study_description:Study Description`,
                 placeholder:$localize `:@@study_description:Study Description`
             },
@@ -1863,6 +1864,7 @@ export class Globalvar {
                     tag:"input",
                     type:"text",
                     filterKey:"StudyDescription",
+                    toUpper: true,
                     description:$localize `:@@study_description:Study Description`,
                     placeholder:$localize `:@@study_description:Study Description`
                 },{
@@ -2369,6 +2371,7 @@ export class Globalvar {
                 tag:"input",
                 type:"text",
                 filterKey:"StudyDescription",
+                toUpper: true,
                 description:$localize `:@@study_description:Study Description`,
                 placeholder:$localize `:@@study_description:Study Description`
             },{
