@@ -14,6 +14,7 @@ const currentSavedLanguage = <LocalLanguageObject> JSON.parse(localStorage.getIt
 
 if (environment.production) {
   enableProdMode();
+  window.console.log = window.console.info = () => { }
 }
 
 if(currentSavedLanguage && currentSavedLanguage.language.code != "en"){
