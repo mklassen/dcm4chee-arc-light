@@ -362,6 +362,9 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
             }
         });
 
+        // ensure the default filter is used on init
+        this.onFilterTemplateSet(this.defaultFilterModel);
+
     }
 
     onFilterTemplateSet(object){
