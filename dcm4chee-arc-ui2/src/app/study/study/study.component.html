@@ -11,7 +11,7 @@
           </div>
           <div class="filter_line" [hidden]="!filter.expand">
             <div class="filter_block">
-              <filter-generator *ngIf="filter.filterSchemaExpand.lineLength" [schema]="filter.filterSchemaExpand.schema" filterID="{{'study-filter-' + studyConfig.tab}}" [doNotSave]="[]" [model]="filter.filterModel" [filterTreeHeight]="filter.filterSchemaExpand.lineLength" (onChange)="filterChanged()" [defaultSubmitId]="'submit'" (onTemplateSet)="onFilterTemplateSet($event)"></filter-generator>
+              <filter-generator *ngIf="filter.filterSchemaExpand.lineLength" [schema]="filter.filterSchemaExpand.schema" filterID="{{'study-filter-' + studyConfig.tab}}" [doNotSave]="[]" [model]="filter.filterModel" [filterTreeHeight]="filter.filterSchemaExpand.lineLength" (onChange)="filterChanged()" [defaultSubmitId]="'submit'" (onTemplateSet)="onFilterTemplateSet($event)" (onFilterClear)="onFilterClear($event)"></filter-generator>
             </div>
           </div>
         </ng-container>
