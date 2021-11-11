@@ -119,7 +119,8 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
     defaultFilterModel = {
         limit:20,
         offset:0,
-        includefield:"all"
+        includefield:"all",
+        ModalitiesInStudy: "MR, OT"
     };
     private _filter:StudyFilterConfig = {
         filterSchemaEntry:{
