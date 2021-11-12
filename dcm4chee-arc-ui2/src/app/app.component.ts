@@ -51,6 +51,7 @@ export class AppComponent implements OnInit {
     showEditAccount = false;
     showScrollButton = false;
     currentServerTime;
+    displayServerTime = false;
     currentClockTime;
     clockInterval;
     j4care = j4care;
@@ -117,6 +118,9 @@ export class AppComponent implements OnInit {
             if (_.hasIn(res, "documentation-url")){
                 this.docsUrl = _.get(res, "documentation-url");
             }
+            if (_.hasIn(res, "display-server-time")){
+                this.displayServerTime = _.get(res, "display-server-time").toLowerCase() === 'true';
+            }
             console.log("baseUrl=",this.mainservice.baseUrl);
             console.log("docsUrl=",this.docsUrl);
 
@@ -173,19 +177,21 @@ export class AppComponent implements OnInit {
 /*        this.setServerTime(()=>{
         });*/
         this.initGetPDQServices();
-        this.startTime();
-        document.addEventListener("visibilitychange", () => {
-            if(document.visibilityState === "visible"){
-                this.startTime();
-            }else{
-                if(worker){
-                    worker.postMessage({
-                        serverTime:this.currentServerTime,
-                        idle:document.hidden
-                    });
+        if ( this.displayServerTime ) {
+            this.startTime();
+            document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === "visible") {
+                    this.startTime();
+                } else {
+                    if (worker) {
+                        worker.postMessage({
+                            serverTime: this.currentServerTime,
+                            idle: document.hidden
+                        });
+                    }
                 }
-            }
-        });
+            });
+        }
     }
     startTime(){
         if (typeof Worker !== 'undefined') {
