@@ -2773,6 +2773,33 @@ export class StudyService {
                     headerDescription: $localize `:@@number_of_frames:Number of Frames`,
                     widthWeight: 0.3,
                     calculatedWidth: "20%"
+                }),
+                new TableSchemaElement({
+                    type: "actions",
+                    header: "",
+                    actions: [
+                        {
+                            icon: {
+                                tag: 'span',
+                                cssClass: 'glyphicon glyphicon-save',
+                                text: ''
+                            },
+                            click: (e) => {
+                                actions.call($this, {
+                                    event: "click",
+                                    level: "instance",
+                                    action: "download"
+                                }, e);
+                            },
+                            title: $localize `:@@download:Download`,
+                            permission: {
+                                id: 'action-studies-download',
+                                param: 'visible'
+                            }
+                        }
+                    ],
+                    headerDescription: $localize `:@@actions:Actions`,
+                    pxWidth: 40
                 })
             ],
             mwl:[
