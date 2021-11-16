@@ -77,16 +77,13 @@ public class ArchiveAssociationHandler extends AssociationHandler {
             throws IOException {
         ArchiveAEExtension arcAE = as.getApplicationEntity().getAEExtension(ArchiveAEExtension.class);
         if (arcAE != null) {
-            // Only validate user if userIdentity has not already been negotiated
-            if (userIdentity == null) {
-                NegotiatedIdentity identity = new NegotiatedIdentity();
-                if (!validateUserIdentity(as, arcAE, rq.getUserIdentityRQ(), identity)) {
-                    throw new AAssociateRJ(AAssociateRJ.RESULT_REJECTED_PERMANENT,
-                            AAssociateRJ.SOURCE_SERVICE_PROVIDER_ACSE,
-                            AAssociateRJ.REASON_NO_REASON_GIVEN);
-                }
-                userIdentity = identity.userIdentityAC;
+            NegotiatedIdentity identity = new NegotiatedIdentity();
+            if (!validateUserIdentity(as, arcAE, rq.getUserIdentityRQ(), identity)) {
+                throw new AAssociateRJ(AAssociateRJ.RESULT_REJECTED_PERMANENT,
+                        AAssociateRJ.SOURCE_SERVICE_PROVIDER_ACSE,
+                        AAssociateRJ.REASON_NO_REASON_GIVEN);
             }
+            userIdentity = identity.userIdentityAC;
             if (arcAE.validateCallingAEHostname() && !validateCallingAEHostname(as))
                 throw new AAssociateRJ(AAssociateRJ.RESULT_REJECTED_PERMANENT,
                     AAssociateRJ.SOURCE_SERVICE_USER,
