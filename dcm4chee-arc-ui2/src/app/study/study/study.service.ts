@@ -2752,8 +2752,8 @@ export class StudyService {
                 }),
                 new TableSchemaElement({
                     type: "pipe",
-                    header: $localize `:@@series_date:Content Date`,
-                    headerDescription: $localize `:@@series_date:Content Date`,
+                    header: $localize `:@@study.content_time:Content Time`,
+                    headerDescription: $localize `:@@study.content_time:Content Time`,
                     widthWeight: 0.6,
                     calculatedWidth: "15%",
                     pipe: new DynamicPipe(DicomTimePipe, ["00080033",])
