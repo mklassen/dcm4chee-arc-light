@@ -145,7 +145,7 @@
             </div>
         }
         @if (tableParam.config.showCheckboxes && studyWebService && studyWebService.selectedWebService && studyWebService.selectedWebService.dcmWebServiceClass.indexOf('DCM4CHEE_ARC_AET') > -1) {
-            <div class="selection_actions" [permission]="{id:'action-studies-copy_merge_move',param:'visible'}">
+            <div class="selection_actions">
                 <ul class="selection_functions">
                     <li class="ignore_click_outside">
                         <button class="ignore_click_outside" [ngClass]="{'active':checkboxFunctions}"
@@ -161,6 +161,7 @@
                             <i class="material-icons">get_app</i>
                         </button>
                     </li>
+                    <span [permission]="{id:'action-studies-copy_merge_move',param:'visible'}">
                     @if (studyWebService.selectedWebService.dcmWebServiceClass.indexOf("DCM4CHEE_ARC_AET") > -1) {
                         <li>
                             <button [disabled]="selectedElements.action || selectedElements.preActionElements.getSpecificObjectSize('patient') > 0"
@@ -196,15 +197,18 @@
                                 title="Start the process of copying/moving/linking or merging"><i
                                 class="glyphicon glyphicon-paste"></i></button>
                     </li>
+                    </span>
                 </ul>
                 @if (checkboxFunctions) {
                     <ul class="checkbox_functions" (clickOutside)='checkboxFunctions = !checkboxFunctions'
                         [clickOutsideExceptionClass]="['ignore_click_outside']">
+                        <span [permission]="{id:'action-studies-copy_merge_move',param:'visible'}">
                         <li class="ignore_click_outside">
                             <button class="ignore_click_outside" (click)="selectionAction('remove_selection')"
                                     i18n="@@remove_all_selections">Remove all selections
                             </button>
                         </li>
+                        </span>
                         <li class="ignore_click_outside">
                             <button class="ignore_click_outside" (click)="selectionAction('check_selection_study')"
                                     i18n="@@select_all_studies">Select all studies
@@ -251,11 +255,13 @@
                 @if (checkboxFunctions) {
                     <ul class="checkbox_functions" (clickOutside)='checkboxFunctions = !checkboxFunctions'
                         [clickOutsideExceptionClass]="['ignore_click_outside']">
+                        <span [permission]="{id:'action-studies-copy_merge_move',param:'visible'}">
                         <li class="ignore_click_outside">
                             <button class="ignore_click_outside" (click)="selectionAction('remove_selection')"
                                     i18n="@@remove_all_selections">Remove all selections
                             </button>
                         </li>
+                        </span>
                         <li class="ignore_click_outside">
                             <button class="ignore_click_outside" (click)="selectionAction('check_selection_study')"
                                     i18n="@@select_all_studies">Select all studies
