@@ -167,7 +167,7 @@ public class AccessTokenRequestor {
         if (identityConfigurer != null) {
             String resource = null;
             if (kc != null)
-                resource = kc.getKeycloakRealm();
+                resource = kc.getKeycloakClientID();
 
             Set<String> resourceAccessRoles = AccessControl.parseToken(token, resource);
             Set<String> realmRoles = token.getRealmAccess() != null ? token.getRealmAccess().getRoles() : Collections.emptySet();;
@@ -188,7 +188,13 @@ public class AccessTokenRequestor {
             JWSInput jws = new JWSInput(tokenManager.getAccessToken().getToken());
             AccessToken token = jws.readJsonContent(AccessToken.class);
             parseToken(token, kc, identityConfigurer);
-        return role == null || (token.getRealmAccess() != null && token.getRealmAccess().isUserInRole(role));
+            boolean useResourceRoles = Boolean.parseBoolean(System.getProperty("keycloak-use-resource-roles", "false"));
+            AccessToken.Access access;
+            if (useResourceRoles)
+                access = token.getResourceAccess(kc.getKeycloakClientID());
+            else
+                access = token.getRealmAccess();
+        return role == null || (access != null && access.isUserInRole(role));
         }
     }
 
