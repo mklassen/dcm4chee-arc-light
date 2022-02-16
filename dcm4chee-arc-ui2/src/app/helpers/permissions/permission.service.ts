@@ -100,9 +100,16 @@ export class PermissionService {
                     userInfo = user; //Extracting userInfo from KeyCloak
                 }),
                 switchMap(res => this.mainservice.getDcm4cheeArc()),
-                map(deviceNameResponse=>{
-                    if(userInfo){
-                        const roles:Array<string> = _.get(userInfo,"tokenParsed.realm_access.roles");
+                map(deviceNameResponse => {
+                    if (userInfo) {
+                        const useResourceRoles: boolean = _.get(deviceNameResponse, 'keycloak-use-resource-roles').toLowerCase() === 'true';
+                        const uiClientID: string = _.get(deviceNameResponse, 'ui-client-id');
+                        let roles: Array<string>;
+                        if (useResourceRoles) {
+                            roles = _.get(userInfo, 'tokenParsed.resource_access[' + uiClientID + '].roles');
+                        } else {
+                            roles = _.get(userInfo, 'tokenParsed.realm_access.roles');
+                        }
                         let user = new User({
                             authServerUrl:userInfo.authServerUrl,
                             realm:userInfo.realm,
