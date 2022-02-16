@@ -61,23 +61,20 @@ import java.util.*;
  */
 
 public class AccessControl {
-    public static Set<String> getResourceAccessRoles(AccessToken token, String client_id) {
-        if (token == null)
-            return null;
+    public static Set<String> getRoles(AccessToken accessToken) {
+        Set<String> roles = new HashSet<>();
+        if (accessToken == null)
+            return roles;
 
-        String resource_id = token.getIssuedFor();
-        if (resource_id == null) {
-            if (client_id != null)
-                resource_id = client_id;
-            else
-                resource_id = System.getProperty("ui-client-id", "dcm4chee-arc-ui");
-        }
+        AccessToken.Access access = accessToken.getRealmAccess();
+        if (access != null)
+            roles.addAll(access.getRoles());
 
-        AccessToken.Access access = token.getResourceAccess(resource_id);
-        if (access == null)
-            return Collections.emptySet();
+        access = accessToken.getResourceAccess(accessToken.getIssuedFor());
+        if (access != null)
+            roles.addAll(access.getRoles());
 
-        return access.getRoles();
+        return roles;
     }
 
     public static Set<String> getTokenAccessControlIDs(String tokenString, KeycloakClient keycloakClient){
@@ -131,18 +128,19 @@ public class AccessControl {
         }
     }
 
-    public static boolean isUserInRole(AccessToken token, String role, KeycloakClient keycloakClient){
-        boolean useResourceRoles = Boolean.parseBoolean(System.getProperty("keycloak-use-resource-roles", "false"));
-        AccessToken.Access access;
+    public static boolean isUserInRole(AccessToken token, String role){
+        if (role == null)
+            return true;
 
         if (token == null)
             return false;
 
-        if (useResourceRoles)
-            access = token.getResourceAccess(keycloakClient.getKeycloakClientID());
-        else
-            access = token.getRealmAccess();
-        return role == null || (access != null && access.isUserInRole(role));
+        AccessToken.Access access = token.getRealmAccess();
+        if (token != null && access.isUserInRole(role))
+            return true;
+
+        access = token.getResourceAccess(token.getIssuedFor());
+        return access != null && access.isUserInRole(role);
     }
 
     public static String[] getAccessControlIDs(String[] arcAEAccessControlIDs, HttpServletRequestInfo httpServletRequestInfo, Association requestAssociation, KeycloakClient keycloakClient) {
@@ -154,19 +152,14 @@ public class AccessControl {
         AccessToken accessToken = null;
 
         // Use token found in the HTTP request, if any
-        if (httpServletRequestInfo != null) {
-            if (httpServletRequestInfo.requestKSC != null) {
-                Set<String> tokenAccessControlIDs = getTokenAccessControlIDs(
-                        httpServletRequestInfo.requestKSC.getTokenString(),
-                        keycloakClient
-                );
-                if (tokenAccessControlIDs != null)
-                    accessControlIDSet.addAll(tokenAccessControlIDs);
-                // Having no accessControlIDs will allow user to query/retrieve everything
-                // Add '*' accessControlID to ensure that at least one is present
-                accessControlIDSet.add("*");
-                accessToken = httpServletRequestInfo.requestKSC.getToken();
-            }
+        if (httpServletRequestInfo != null && httpServletRequestInfo.requestKSC != null) {
+            Set<String> tokenAccessControlIDs = getTokenAccessControlIDs(
+                    httpServletRequestInfo.requestKSC.getTokenString(),
+                    keycloakClient
+            );
+            if (tokenAccessControlIDs != null)
+                accessControlIDSet.addAll(tokenAccessControlIDs);
+            accessToken = httpServletRequestInfo.requestKSC.getToken();
         }
 
         // Assign accessControlIDs found in the DICOM association token, if any
@@ -179,39 +172,33 @@ public class AccessControl {
                     accessControlIDSet.addAll(
                             ((ArchiveUserIdentityAC) userIdentityAC).getAccessControlIDs()
                     );
-                    // Having no accessControlIDs will allow user to query/retrieve everything
-                    // Add '*' accessControlID to ensure that at least one is present
-                    accessControlIDSet.add("*");
                     accessToken = ((ArchiveUserIdentityAC) userIdentityAC).getAccessToken();
                 }
             }
         }
 
-        boolean isUserDatacare = AccessControl.isUserInRole(
+        // override Role-Based Access Control
+        // - if user has datacareRole
+        // - if both http request info and DICOM request association object are null
+        //  This happens in e.g. Storage Commitment SCP, which does not store the association in
+        //  the retrieve service/context used to access the data
+        boolean overrideRoleBasedAccessControl = (( requestAssociation == null && httpServletRequestInfo == null ) ||
+                AccessControl.isUserInRole(
                 accessToken,
-                datacareRole,
-                keycloakClient
-        );
+                datacareRole
+        ));
 
-        // Add "*" role to non-empty archive AE AccessControlIDs to retain it
-        if(!arcAEAccessControlIDSet.isEmpty()){
-            arcAEAccessControlIDSet.add("*");
-        }
-
-        if(isUserDatacare){
-            // datacare user --> empty set of token-derived accessControlIDs
+        if (overrideRoleBasedAccessControl){
+            // empty set of token-derived accessControlIDs, which disables filtering on them
             accessControlIDSet.clear();
-        }
-
-        if(!arcAEAccessControlIDSet.isEmpty()){
-            // Filter access control IDs to only include those that are defined for AE (if any are defined for AE)
-            if (accessControlIDSet.size() > 0) {
+            accessControlIDSet.addAll(arcAEAccessControlIDSet);
+        } else {
+            if (!arcAEAccessControlIDSet.isEmpty())
                 accessControlIDSet.retainAll(arcAEAccessControlIDSet);
-            }
-            // if there are no accessControlIDs obtained from token, use arcAEAccessControlIDs in their place
-            else {
-                accessControlIDSet.addAll(arcAEAccessControlIDSet);
-            }
+
+            // Having no accessControlIDs would allow user to query/retrieve everything
+            // Add '*' accessControlID to ensure that at least one is present
+            accessControlIDSet.add("*");
         }
 
         return accessControlIDSet.toArray(new String[0]);
