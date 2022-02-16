@@ -38,6 +38,9 @@
 package org.dcm4chee.arc.keycloak;
 
 import org.dcm4che3.net.pdu.UserIdentityAC;
+import org.keycloak.jose.jws.JWSInput;
+import org.keycloak.jose.jws.JWSInputException;
+import org.keycloak.representations.AccessToken;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -48,26 +51,32 @@ import java.util.Set;
  */
 
 public class ArchiveUserIdentityAC extends UserIdentityAC {
-    private Set<String> clientRoles = new HashSet<String>();
-    private Set<String> realmRoles = new HashSet<String>();
+    private Set<String> accessControlIDs = new HashSet<String>();
+    private AccessToken accessToken = null;
 
     public ArchiveUserIdentityAC(byte[] serverResponse) {
         super(serverResponse);
     }
 
-    public Set<String> getRealmRoles() {
-        return realmRoles;
+    public AccessToken getAccessToken() {
+        return accessToken;
     }
 
-    public void addRealmRoles(Set<String> realmRoles) {
-        this.realmRoles.addAll(realmRoles);
+    public void setAccessToken(String accessTokenString) {
+        try {
+            JWSInput jws = new JWSInput(accessTokenString);
+            this.accessToken = jws.readJsonContent(AccessToken.class);
+        }
+        catch (JWSInputException ignored) {
+        }
+
     }
 
-    public Set<String> getClientRoles() {
-        return clientRoles;
+    public Set<String> getAccessControlIDs() {
+        return accessControlIDs;
     }
 
-    public void addClientRoles(Set<String> clientRoles) {
-        this.clientRoles.addAll(clientRoles);
+    public void addAccessControlIDs(Set<String> accessControlIDs) {
+        this.accessControlIDs.addAll(accessControlIDs);
     }
 }

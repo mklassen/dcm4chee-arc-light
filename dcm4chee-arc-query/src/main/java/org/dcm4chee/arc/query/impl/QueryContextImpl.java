@@ -49,6 +49,7 @@ import org.dcm4che3.net.Association;
 import org.dcm4che3.net.service.QueryRetrieveLevel2;
 import org.dcm4che3.util.ReverseDNS;
 import org.dcm4che3.util.SafeClose;
+import org.dcm4chee.arc.impl.ArchiveAssociationHandler;
 import org.dcm4chee.arc.keycloak.AccessControl;
 import org.dcm4chee.arc.conf.ArchiveAEExtension;
 import org.dcm4chee.arc.conf.ArchiveDeviceExtension;
@@ -286,7 +287,8 @@ class QueryContextImpl implements QueryContext {
         return AccessControl.getAccessControlIDs(
                 this.getArchiveAEExtension().getAccessControlIDs(),
                 this.httpRequest,
-                this.getAssociation()
+                this.getAssociation(),
+                ArchiveAssociationHandler.keycloakClient(this.getArchiveAEExtension())
         );
     }
 }

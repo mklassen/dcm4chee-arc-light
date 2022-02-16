@@ -115,10 +115,10 @@ public class ArchiveAssociationHandler extends AssociationHandler {
                 && (kc = keycloakClient(arcAE)) != null)
             try {
 
-                AccessTokenRequestor.IdentityConfigurer identityConfigurer = (response, realmRoles, clientRoles) -> {
+                AccessTokenRequestor.IdentityConfigurer identityConfigurer = (response, accessTokenString, accessControlIDs) -> {
                     ArchiveUserIdentityAC archiveUserIdentityAC = new ArchiveUserIdentityAC(response);
-                    archiveUserIdentityAC.addRealmRoles(realmRoles);
-                    archiveUserIdentityAC.addClientRoles(clientRoles);
+                    archiveUserIdentityAC.setAccessToken(accessTokenString);
+                    archiveUserIdentityAC.addAccessControlIDs(accessControlIDs);
                     identity.userIdentityAC = archiveUserIdentityAC;
                 };
 
@@ -141,7 +141,7 @@ public class ArchiveAssociationHandler extends AssociationHandler {
         return optional;
     }
 
-    private KeycloakClient keycloakClient(ArchiveAEExtension arcAE) {
+    public static KeycloakClient keycloakClient(ArchiveAEExtension arcAE) {
         String keycloakClientID = arcAE.userIdentityNegotiationKeycloakClientID();
         if (keycloakClientID != null) {
             KeycloakClient kc = arcAE.getApplicationEntity().getDevice().getKeycloakClient(keycloakClientID);

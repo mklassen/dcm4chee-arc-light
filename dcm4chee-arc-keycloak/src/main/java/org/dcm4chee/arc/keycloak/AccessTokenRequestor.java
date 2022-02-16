@@ -162,19 +162,16 @@ public class AccessTokenRequestor {
         return builder;
     }
 
-    private void parseToken(AccessToken token, KeycloakClient kc, IdentityConfigurer identityConfigurer) {
+    private void parseToken(String accessTokenString, KeycloakClient kc, IdentityConfigurer identityConfigurer) {
 
         if (identityConfigurer != null) {
-            String resource = null;
-            if (kc != null)
-                resource = kc.getKeycloakClientID();
 
-            Set<String> resourceAccessRoles = AccessControl.parseToken(token, resource);
-            Set<String> realmRoles = token.getRealmAccess() != null ? token.getRealmAccess().getRoles() : Collections.emptySet();;
+            Set<String> accessControlIDs = AccessControl.getTokenAccessControlIDs(accessTokenString, kc);
 
             identityConfigurer.run(new byte[0],
-                    realmRoles,
-                    resourceAccessRoles);
+                    accessTokenString,
+                    accessControlIDs
+                    );
         }
     }
 
@@ -185,16 +182,11 @@ public class AccessTokenRequestor {
     public boolean verifyUsernamePasscode(KeycloakClient kc, String role, IdentityConfigurer identityConfigurer) throws Exception {
         try (Keycloak keycloak = toKeycloak(kc)) {
             TokenManager tokenManager = keycloak.tokenManager();
-            JWSInput jws = new JWSInput(tokenManager.getAccessToken().getToken());
+            String tokenString = tokenManager.getAccessToken().getToken();
+            JWSInput jws = new JWSInput(tokenString);
             AccessToken token = jws.readJsonContent(AccessToken.class);
-            parseToken(token, kc, identityConfigurer);
-            boolean useResourceRoles = Boolean.parseBoolean(System.getProperty("keycloak-use-resource-roles", "false"));
-            AccessToken.Access access;
-            if (useResourceRoles)
-                access = token.getResourceAccess(kc.getKeycloakClientID());
-            else
-                access = token.getRealmAccess();
-        return role == null || (access != null && access.isUserInRole(role));
+            parseToken(tokenString, kc, identityConfigurer);
+        return AccessControl.isUserInRole(token, role, kc);
         }
     }
 
@@ -234,7 +226,7 @@ public class AccessTokenRequestor {
         tokenVerifier.publicKey(publicKey);
         tokenVerifier.verify();
         AccessToken token = tokenVerifier.getToken();
-        parseToken(token, kc, identityConfigurer);
+        parseToken(tokenString, kc, identityConfigurer);
         return role == null || token.getRealmAccess().isUserInRole(role);
     }
 
@@ -279,7 +271,7 @@ public class AccessTokenRequestor {
     }
 
     public interface IdentityConfigurer {
-        void run(byte[] response, Set<String> realmRoles, Set<String> clientRoles);
+        void run(byte[] response, String accessTokenString, Set<String> accessControlIDs);
     }
 
     public static class AccessTokenWithExpiration {

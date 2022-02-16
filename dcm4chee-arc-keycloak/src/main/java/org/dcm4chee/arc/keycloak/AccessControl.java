@@ -38,15 +38,22 @@
 
 package org.dcm4chee.arc.keycloak;
 
+import java.net.URI;
+import java.net.http.HttpClient;
 import org.dcm4che3.net.Association;
+import org.dcm4che3.net.KeycloakClient;
 import org.dcm4che3.net.pdu.AAssociateAC;
 import org.dcm4che3.net.pdu.UserIdentityAC;
+import org.keycloak.TokenVerifier;
+import org.keycloak.common.VerificationException;
+import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.representations.AccessToken;
+import org.keycloak.util.JsonSerialization;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.io.IOException;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.*;
 
 /**
  * @author Martyn Klassen <lmklassen@gmail.com>
@@ -54,7 +61,7 @@ import java.util.Set;
  */
 
 public class AccessControl {
-    public static Set<String> parseToken(AccessToken token, String client_id) {
+    public static Set<String> getResourceAccessRoles(AccessToken token, String client_id) {
         if (token == null)
             return null;
 
@@ -73,22 +80,96 @@ public class AccessControl {
         return access.getRoles();
     }
 
-    public static String[] getAccessControlIDs(String[] arcAEAccessControlIDs, HttpServletRequestInfo httpServletRequestInfo, Association requestAssociation) {
+    public static Set<String> getTokenAccessControlIDs(String tokenString, KeycloakClient keycloakClient){
+        TokenVerifier<AccessToken> tokenVerifier = TokenVerifier.create(tokenString, AccessToken.class);
+
+        try {
+            AccessToken token = tokenVerifier.getToken();
+            if (token == null)
+                return null;
+            UserInfoWithAccessControl userInfo = doUserInfoRequest(
+                    tokenString,
+                    keycloakClient.getKeycloakServerURL() + "realms/" + keycloakClient.getKeycloakRealm()
+            );
+
+            if (userInfo != null) {
+                String[] accessControl = userInfo.getAccessControl();
+                if (accessControl != null) {
+                    return new HashSet<>(Arrays.asList(accessControl));
+                }
+            }
+            return Collections.emptySet();
+        }
+        catch(VerificationException e){
+            return null;
+        }
+    }
+
+    protected static UserInfoWithAccessControl doUserInfoRequest(String accessTokenString, String keycloakRealmUrl) {
+        try {
+            // obtain userinfo url from openid-configuration endpoint
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest oidcRequest = HttpRequest.newBuilder(
+                            URI.create(keycloakRealmUrl + "/.well-known/openid-configuration"))
+                    .build();
+            HttpResponse<String> oidcResponse = client.send(oidcRequest, HttpResponse.BodyHandlers.ofString());
+            OIDCConfigurationRepresentation oidcConfig = JsonSerialization.readValue(oidcResponse.body(), OIDCConfigurationRepresentation.class);
+
+            // obtain userinfo (with access_control entry)
+            HttpRequest userinfoRequest = HttpRequest.newBuilder(
+                            URI.create(oidcConfig.getUserinfoEndpoint()))
+                    .header("Authorization", "Bearer " + accessTokenString)
+
+                    .build();
+            HttpResponse<String> userinfoResponse = client.send(userinfoRequest, HttpResponse.BodyHandlers.ofString());
+
+            return JsonSerialization.readValue(userinfoResponse.body(), UserInfoWithAccessControl.class);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        } catch (InterruptedException e) {
+            return null;
+        }
+    }
+
+    public static boolean isUserInRole(AccessToken token, String role, KeycloakClient keycloakClient){
+        boolean useResourceRoles = Boolean.parseBoolean(System.getProperty("keycloak-use-resource-roles", "false"));
+        AccessToken.Access access;
+
+        if (token == null)
+            return false;
+
+        if (useResourceRoles)
+            access = token.getResourceAccess(keycloakClient.getKeycloakClientID());
+        else
+            access = token.getRealmAccess();
+        return role == null || (access != null && access.isUserInRole(role));
+    }
+
+    public static String[] getAccessControlIDs(String[] arcAEAccessControlIDs, HttpServletRequestInfo httpServletRequestInfo, Association requestAssociation, KeycloakClient keycloakClient) {
 
         Set<String> accessControlIDSet = new HashSet<>();
         Set<String> arcAEAccessControlIDSet = new HashSet<>(Arrays.asList(arcAEAccessControlIDs));
 
-        // Assign roles found in the HTTP request, if any
+        String datacareRole = System.getProperty("datacare-user-role", "datacare");
+        AccessToken accessToken = null;
+
+        // Use token found in the HTTP request, if any
         if (httpServletRequestInfo != null) {
             if (httpServletRequestInfo.requestKSC != null) {
-                accessControlIDSet.addAll(parseToken(httpServletRequestInfo.requestKSC.getToken(), null));
-                // Logged-in user has no client roles, so only '*' studies may be accessed
-                // To ensure that at least one accessControlID is present so they do not see everything
+                Set<String> tokenAccessControlIDs = getTokenAccessControlIDs(
+                        httpServletRequestInfo.requestKSC.getTokenString(),
+                        keycloakClient
+                );
+                if (tokenAccessControlIDs != null)
+                    accessControlIDSet.addAll(tokenAccessControlIDs);
+                // Having no accessControlIDs will allow user to query/retrieve everything
+                // Add '*' accessControlID to ensure that at least one is present
                 accessControlIDSet.add("*");
+                accessToken = httpServletRequestInfo.requestKSC.getToken();
             }
         }
 
-        // Assign roles found in the DICOM association, if any
+        // Assign accessControlIDs found in the DICOM association token, if any
         if (null != requestAssociation) {
             AAssociateAC ac = requestAssociation.getAAssociateAC();
             if (null != ac) {
@@ -96,28 +177,34 @@ public class AccessControl {
 
                 if (userIdentityAC instanceof ArchiveUserIdentityAC) {
                     accessControlIDSet.addAll(
-                            ((ArchiveUserIdentityAC) userIdentityAC).getClientRoles()
+                            ((ArchiveUserIdentityAC) userIdentityAC).getAccessControlIDs()
                     );
-                    // The user has no client roles, so only '*' studies may be accessed
-                    // To ensure that at least one accessControlID is present so they do not see everything
+                    // Having no accessControlIDs will allow user to query/retrieve everything
+                    // Add '*' accessControlID to ensure that at least one is present
                     accessControlIDSet.add("*");
+                    accessToken = ((ArchiveUserIdentityAC) userIdentityAC).getAccessToken();
                 }
             }
         }
+
+        boolean isUserDatacare = AccessControl.isUserInRole(
+                accessToken,
+                datacareRole,
+                keycloakClient
+        );
 
         // Add "*" role to non-empty archive AE AccessControlIDs to retain it
         if(!arcAEAccessControlIDSet.isEmpty()){
             arcAEAccessControlIDSet.add("*");
         }
 
-        // if datacare role in accessControlIDSet
-        if(accessControlIDSet.contains(System.getProperty("datacare-user-role", "datacare"))){
-            // datacare role present --> empty set of token-derived accessControlIDs
+        if(isUserDatacare){
+            // datacare user --> empty set of token-derived accessControlIDs
             accessControlIDSet.clear();
         }
 
         if(!arcAEAccessControlIDSet.isEmpty()){
-            // Filter roles to only include those that are defined for AE (if any are defined for AE)
+            // Filter access control IDs to only include those that are defined for AE (if any are defined for AE)
             if (accessControlIDSet.size() > 0) {
                 accessControlIDSet.retainAll(arcAEAccessControlIDSet);
             }
