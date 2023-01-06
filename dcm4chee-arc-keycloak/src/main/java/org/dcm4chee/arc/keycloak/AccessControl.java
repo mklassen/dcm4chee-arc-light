@@ -162,9 +162,6 @@ public class AccessControl {
                 );
                 if (tokenAccessControlIDs != null)
                     accessControlIDSet.addAll(tokenAccessControlIDs);
-                // Having no accessControlIDs will allow user to query/retrieve everything
-                // Add '*' accessControlID to ensure that at least one is present
-                accessControlIDSet.add("*");
                 accessToken = httpServletRequestInfo.requestKSC.getToken();
             }
         }
@@ -179,39 +176,33 @@ public class AccessControl {
                     accessControlIDSet.addAll(
                             ((ArchiveUserIdentityAC) userIdentityAC).getAccessControlIDs()
                     );
-                    // Having no accessControlIDs will allow user to query/retrieve everything
-                    // Add '*' accessControlID to ensure that at least one is present
-                    accessControlIDSet.add("*");
                     accessToken = ((ArchiveUserIdentityAC) userIdentityAC).getAccessToken();
                 }
             }
         }
 
-        boolean isUserDatacare = AccessControl.isUserInRole(
+        // override Role-Based Access Control
+        // - if user has datacareRole
+        // - if both http request info and DICOM request association object are null
+        //  This happens in e.g. Storage Commitment SCP, which does not store the association in
+        //  the retrieve service/context used to access the data
+        boolean overrideRoleBasedAccessControl = AccessControl.isUserInRole(
                 accessToken,
                 datacareRole,
                 keycloakClient
-        );
+        ) || ( requestAssociation == null && httpServletRequestInfo == null );
 
-        // Add "*" role to non-empty archive AE AccessControlIDs to retain it
-        if(!arcAEAccessControlIDSet.isEmpty()){
-            arcAEAccessControlIDSet.add("*");
-        }
-
-        if(isUserDatacare){
-            // datacare user --> empty set of token-derived accessControlIDs
+        if (overrideRoleBasedAccessControl){
+            // empty set of token-derived accessControlIDs, which disables filtering on them
             accessControlIDSet.clear();
-        }
-
-        if(!arcAEAccessControlIDSet.isEmpty()){
-            // Filter access control IDs to only include those that are defined for AE (if any are defined for AE)
-            if (accessControlIDSet.size() > 0) {
+            accessControlIDSet.addAll(arcAEAccessControlIDSet);
+        } else {
+            if (!arcAEAccessControlIDSet.isEmpty())
                 accessControlIDSet.retainAll(arcAEAccessControlIDSet);
-            }
-            // if there are no accessControlIDs obtained from token, use arcAEAccessControlIDs in their place
-            else {
-                accessControlIDSet.addAll(arcAEAccessControlIDSet);
-            }
+
+            // Having no accessControlIDs will allow user to query/retrieve everything
+            // Add '*' accessControlID to ensure that at least one is present
+            accessControlIDSet.add("*");
         }
 
         return accessControlIDSet.toArray(new String[0]);
