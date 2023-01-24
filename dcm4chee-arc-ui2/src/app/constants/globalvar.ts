@@ -4135,7 +4135,7 @@ export class Globalvar {
                     description:$localize `:@@study_instance_uid:Study Instance UID`,
                     placeholder:$localize `:@@study_instance_uid:Study Instance UID`
                 }, {
-                    tag:"editable-multi-select",
+                    tag:"resettable-editable-multi-select",
                     type:"text",
                     optionsTree:[
                         {
@@ -5046,7 +5046,7 @@ export class Globalvar {
                 filterKey:"StudyAccessDateTime",
                 description:$localize `:@@study_access:Study Access`
             }, {
-                tag:"editable-multi-select",
+                tag:"resettable-editable-multi-select",
                 type:"text",
                 optionsTree:[
                     {
@@ -5340,7 +5340,7 @@ export class Globalvar {
                 filterKey:"StudyTime",
                 description:$localize `:@@study_time:Study time`
             }, {
-                tag:"editable-multi-select",
+                tag:"resettable-editable-multi-select",
                 type:"text",
                 optionsTree:[
                     {
@@ -5837,7 +5837,7 @@ export class Globalvar {
                 description:$localize `:@@institutional_department_name:Institutional Department Name`,
                 placeholder:$localize `:@@institutional_department_name:Institutional Department Name`
             }, {
-                tag:"editable-multi-select",
+                tag:"resettable-editable-multi-select",
                 type:"text",
                 optionsTree:[
                     {
