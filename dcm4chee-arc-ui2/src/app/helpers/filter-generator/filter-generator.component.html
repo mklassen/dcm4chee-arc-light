@@ -7,7 +7,7 @@
     <div class="filter_template_function">
         <span class="clearform_button" *ngIf="showFilterButtons && !hideClearButtons">
             <ul class="buttons">
-                <li i18n-title="@@title.filter-generator.clear_current_filters" title="Clear current filters" (click)="$event.preventDefault();clear()"><ng-container i18n="@@Clear">Clear</ng-container> <span class="glyphicon glyphicon-remove"></span></li>
+                <li i18n-title="@@title.filter-generator.clear_current_filters" title="Clear current filters" (click)="$event.preventDefault();clear()"><ng-container i18n="@@Clear">Reset</ng-container> <span class="glyphicon glyphicon-remove"></span></li>
             </ul>
         </span>
         <div class="template_list" *ngIf="showFilterTemplateList">
@@ -55,8 +55,8 @@
                       <ng-container  *ngSwitchCase="'input'">
                         <input
                                 [disabled]="line[index].disabled"
-                                (ngModelChange)="model[line[index].filterKey] = $event;filterChange($event)"
-                                [(ngModel)]="model[line[index].filterKey]"
+                                (ngModelChange)="model[line[index].filterKey] = line[index]?.toUpper ? $event.toUpperCase() : $event; filterChange($event)"
+                                [ngModel]="model[line[index].filterKey]"
                                 type="text"
                                 [ngStyle]="line[index].style"
                                 title="{{line[index]?.description}}"
