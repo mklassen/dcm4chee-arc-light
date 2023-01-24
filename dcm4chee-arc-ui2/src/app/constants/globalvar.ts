@@ -3884,6 +3884,33 @@ export class Globalvar {
                 {
                     tag:"input",
                     type:"text",
+                    filterKey:"AccessionNumber",
+                    description:$localize `:@@accession_number:Accession number`,
+                    placeholder:$localize `:@@accession_number:Accession number`
+                },
+                {
+                    tag:"input",
+                    type:"text",
+                    filterKey:"IssuerOfAccessionNumberSequence.LocalNamespaceEntityID",
+                    description:$localize `:@@issuer_of_accession_number:Issuer of accession number`,
+                    placeholder:$localize `:@@issuer_of_accession_number:Issuer of accession number`
+                },
+                {
+                    tag:"input",
+                    type:"text",
+                    filterKey:"ReferringPhysicianName",
+                    placeholder:$localize `:@@referring_physician_family_name:Referring physician family name`,
+                    description:$localize `:@@person_family_name_tooltip:Order of name components in the search field differs from the rendered person names in the list`
+                },{
+                    tag:"input",
+                    type:"text",
+                    filterKey:"InstitutionalDepartmentName",
+                    description:$localize `:@@institutional_department_name:Institutional Department Name`,
+                    placeholder:$localize `:@@institutional_department_name:Institutional Department Name`
+                },
+                {
+                    tag:"input",
+                    type:"text",
                     filterKey:"InstitutionName",
                     description:$localize `:@@institution_name:Institution Name`,
                     placeholder:$localize `:@@institution_name:Institution Name`
@@ -3970,6 +3997,17 @@ export class Globalvar {
                     type:"text",
                     filterKey:"ExpirationDate",
                     description:$localize `:@@expiration_date:Expiration Date`
+                },
+                {
+                    tag:"range-picker",
+                    type:"text",
+                    filterKey:"StudyReceiveDateTime",
+                    description:$localize `:@@study_received:Study Received`
+                },{
+                    tag:"range-picker",
+                    type:"text",
+                    filterKey:"StudyAccessDateTime",
+                    description:$localize `:@@study_access:Study Access`
                 },
                 {
                     tag:"checkbox",
@@ -4146,7 +4184,7 @@ export class Globalvar {
             {
                 tag:"person-name-picker",
                 filterKey:"PatientName",
-                placeholder:$localize `:@@patient_family_name:Patient family name`,
+                placeholder:$localize `:@@patient_family_name:Patient name`,
                 description:$localize `:@@patient_family_name_tooltip:Order of name components in the search field differs from the rendered person names in the list`
             },
             {
@@ -4171,20 +4209,8 @@ export class Globalvar {
             {
                 tag:"input",
                 type:"text",
-                filterKey:"AccessionNumber",
-                description:$localize `:@@accession_number:Accession number`,
-                placeholder:$localize `:@@accession_number:Accession number`
-            },
-            {
-                tag:"input",
-                type:"text",
-                filterKey:"IssuerOfAccessionNumberSequence.LocalNamespaceEntityID",
-                description:$localize `:@@issuer_of_accession_number:Issuer of accession number`,
-                placeholder:$localize `:@@issuer_of_accession_number:Issuer of accession number`
-            },{
-                tag:"input",
-                type:"text",
                 filterKey:"StudyDescription",
+                toUpper: true,
                 description:$localize `:@@study_description:Study Description`,
                 placeholder:$localize `:@@study_description:Study Description`
             },
@@ -4221,19 +4247,6 @@ export class Globalvar {
             {
                 tag:"input",
                 type:"text",
-                filterKey:"ReferringPhysicianName",
-                placeholder:$localize `:@@referring_physician_family_name:Referring physician family name`,
-                description:$localize `:@@person_family_name_tooltip:Order of name components in the search field differs from the rendered person names in the list`
-            },{
-                tag:"input",
-                type:"text",
-                filterKey:"InstitutionalDepartmentName",
-                description:$localize `:@@institutional_department_name:Institutional Department Name`,
-                placeholder:$localize `:@@institutional_department_name:Institutional Department Name`
-            },
-            {
-                tag:"input",
-                type:"text",
                 filterKey:"SendingApplicationEntityTitleOfSeries",
                 description:$localize `:@@sending_application_entity_title_of_series:Sending Application Entity Title of Series`,
                 placeholder:$localize `:@@sending_aet_of_series:Sending AET of Series`
@@ -4254,16 +4267,6 @@ export class Globalvar {
                 type:"text",
                 filterKey:"StudyTime",
                 description:$localize `:@@study_time:Study time`
-            },{
-                tag:"range-picker",
-                type:"text",
-                filterKey:"StudyReceiveDateTime",
-                description:$localize `:@@study_received:Study Received`
-            },{
-                tag:"range-picker",
-                type:"text",
-                filterKey:"StudyAccessDateTime",
-                description:$localize `:@@study_access:Study Access`
             }
         ];
     }
@@ -4309,6 +4312,7 @@ export class Globalvar {
                     tag:"input",
                     type:"text",
                     filterKey:"StudyDescription",
+                    toUpper: true,
                     description:$localize `:@@study_description:Study Description`,
                     placeholder:$localize `:@@study_description:Study Description`
                 },{
@@ -4886,6 +4890,13 @@ export class Globalvar {
             },{
                 tag:"input",
                 type:"text",
+                filterKey:"StudyDescription",
+                toUpper: true,
+                description:$localize `:@@study_description:Study Description`,
+                placeholder:$localize `:@@study_description:Study Description`
+            },{
+                tag:"input",
+                type:"text",
                 filterKey:"StudyInstanceUID",
                 description:$localize `:@@study_instance_uid:Study Instance UID`,
                 placeholder:$localize `:@@study_instance_uid:Study Instance UID`
@@ -5003,7 +5014,7 @@ export class Globalvar {
             {
                 tag:"person-name-picker",
                 filterKey:"PatientName",
-                placeholder:$localize `:@@patient_family_name:Patient family name`,
+                placeholder:$localize `:@@patient_family_name:Patient name`,
                 description:$localize `:@@person_family_name_tooltip:Order of name components in the search field differs from the rendered person names in the list`
             },
             {

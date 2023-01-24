@@ -91,6 +91,8 @@ public class Resource {
         sb.append(",\"keycloak-use-resource-roles\":\"").append(System.getProperty("keycloak-use-resource-roles", "false")).append("\"");
         sb.append(",\"default-web-app\":\"").append(System.getProperty("default-web-app", "DCM4CHEE")).append("\"");
         sb.append(",\"documentation-url\":\"").append(System.getProperty("documentation-url", "/docs")).append("\"");
+        sb.append(",\"ui2-web-app-title\":\"").append(System.getProperty("ui2-web-app-title", "dcm4chee-arc-ui")).append("\"");
+        sb.append(",\"display-server-time\":\"").append(System.getProperty("display-server-time", "false")).append("\"");
         sb.append("}");
         return sb.toString();
     }
