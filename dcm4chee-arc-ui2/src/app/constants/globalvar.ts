@@ -3414,7 +3414,7 @@ export class Globalvar {
                     placeholder:$localize `:@@scheduled_station_ae_title:Scheduled Station AE Title`
                 }
                 ,{
-                    tag:"editable-multi-select",
+                    tag:"resettable-editable-multi-select",
                     type:"text",
                     optionsTree:[
                         {
@@ -4170,7 +4170,7 @@ export class Globalvar {
                 placeholder:$localize `:@@study_description:Study Description`
             },
             {
-                tag:"editable-multi-select",
+                tag:"resettable-editable-multi-select",
                 type:"text",
                 optionsTree:[
                     {
@@ -4405,7 +4405,7 @@ export class Globalvar {
                 placeholder:$localize `:@@issuer_of_accession_number:Issuer of accession number`
             },
             {
-                tag:"editable-multi-select",
+                tag:"resettable-editable-multi-select",
                 type:"text",
                 optionsTree:[
                     {
@@ -4824,7 +4824,7 @@ export class Globalvar {
                 placeholder:$localize `:@@series_instance_uid:Series Instance UID`
             },
             {
-                tag:"editable-multi-select",
+                tag:"resettable-editable-multi-select",
                 type:"text",
                 optionsTree:[
                     {
