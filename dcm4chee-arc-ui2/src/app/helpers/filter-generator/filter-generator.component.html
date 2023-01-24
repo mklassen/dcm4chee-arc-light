@@ -218,6 +218,23 @@
                                                 [showStar]="line[index].showStar"
                                         ></dcm-drop-down>
                                     }
+                                    @if (line[index].tag === 'resettable-editable-multi-select') {
+                                        <resettable-dcm-drop-down
+                                                [ngStyle]="line[index].style"
+                                                [placeholder]="line[index]?.placeholder"
+                                                [ngClass]="line[index].cssClass"
+                                                [options]="line[index].options"
+                                                [optionsTree]="line[index].optionsTree"
+                                                [min]="line[index].min"
+                                                [max]="line[index].max"
+                                                [editable]="true"
+                                                [showSearchField]="true"
+                                                [(model)]="model[line[index].filterKey]"
+                                                [multiSelectMode]="true"
+                                                (modelChange)="filterChange($event)"
+                                                [showStar]="line[index].showStar"
+                                        ></resettable-dcm-drop-down>
+                                    }
                                     @if (line[index].tag === 'multi-select') {
                                         <dcm-drop-down
                                                 [multiSelectMode]="true"

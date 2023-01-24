@@ -28,7 +28,8 @@
                                               [model]="filter.filterModel"
                                               [filterTreeHeight]="filter.filterSchemaExpand.lineLength"
                                               (onChange)="filterChanged()" [defaultSubmitId]="'submit'"
-                                              (onTemplateSet)="onFilterTemplateSet($event)"></filter-generator>
+                                              (onTemplateSet)="onFilterTemplateSet($event)"
+                                              (onFilterClear)="onFilterClear($event)"></filter-generator>
                         }
                     </div>
                 </div>

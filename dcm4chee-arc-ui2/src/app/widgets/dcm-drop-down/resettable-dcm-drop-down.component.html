@@ -1,0 +1,16 @@
+<dcm-drop-down
+        [placeholder]="placeholder"
+        [options]="options"
+        [optionsTree]="optionsTree"
+        [multiSelectMode]="multiSelectMode"
+        [showSearchField]="showSearchField"
+        [mixedMode]="mixedMode"
+        [maxSelectedValueShown]="maxSelectedValueShown"
+        [showSelectedEmptyValue]="showSelectedEmptyValue"
+        [editable]="editable"
+        [min]="min"
+        [max]="max"
+        [showStar]="showStar"
+        [model]="model"
+        (modelChange)="modelChange.emit($event)"
+></dcm-drop-down>
