@@ -131,6 +131,12 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
     patientAttributes;
     studyAttributes;
     devices;
+    defaultFilterModel = {
+        limit:20,
+        offset:0,
+        includefield:"all",
+        ModalitiesInStudy: ["MR", "OT"]
+    };
     private _filter:StudyFilterConfig = {
         filterSchemaEntry:{
             lineLength:undefined,
@@ -146,11 +152,7 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
         },
         filterEntryModel:{
         },
-        filterModel:{
-            limit:20,
-            offset:0,
-            includefield:"all"
-        },
+        filterModel: {},
         expand:false,
         quantityText:{
             count:$localize `:@@COUNT:COUNT`,
@@ -455,11 +457,10 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
                 return true;
             }
         });
-
     }
 
     onFilterTemplateSet(object){
-        this.filterTemplate = object;
+        this.filterTemplate = _.cloneDeep(object);
         this.setTemplateToFilter();
         this.onFilterChange.emit(this.filter.filterModel);
     }
@@ -941,6 +942,7 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
         if(_.hasIn(e,"webApp") && e.webApp === ""){
             this.studyWebService.selectedWebService = undefined;
         }
+        this.onFilterTemplateSet(this.defaultFilterModel);
     }
     onRemoveFromSelection(e){
         console.log("e",e);
@@ -6735,15 +6737,23 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
                         });
                         if (defaultWebApp) {
                             console.log("defaultWebApp setting is ", defaultWebApp);
+                            // set the Web app for initial search
                             this.studyWebService.seletWebAppFromWebAppName(defaultWebApp);
                             console.log("successfully selected ", defaultWebApp, " as web app");
+                            // save the web app for future filter clears/resets
+                            this.defaultFilterModel["webApp"] = defaultWebApp;
                         }
+
                     }
                     this.setTemplateToFilter();
                     this.initExporters(2);
                     this.initRjNotes(2);
                     this.getQueueNames();
                     this.getRetrieveQueueNames();
+
+                    // ensure the default filter is used on init
+                    this.onFilterTemplateSet(this.defaultFilterModel);
+
                     this.triggerSubmitOnQueryParams();
                 },
                 (err)=> {
