@@ -136,6 +136,22 @@
                               (modelChange)="filterChange($event)"
                               [showStar]="line[index].showStar"
                       ></dcm-drop-down>
+                      <resettable-dcm-drop-down
+                              [ngStyle]="line[index].style"
+                              *ngSwitchCase="'resettable-editable-multi-select'"
+                              [placeholder]="line[index]?.placeholder"
+                              [ngClass]="line[index].cssClass"
+                              [options]="line[index].options"
+                              [optionsTree]="line[index].optionsTree"
+                              [min]="line[index].min"
+                              [max]="line[index].max"
+                              [editable]="true"
+                              [showSearchField]="true"
+                              [(model)]="model[line[index].filterKey]"
+                              [multiSelectMode]="true"
+                              (modelChange)="filterChange($event)"
+                              [showStar]="line[index].showStar"
+                      ></resettable-dcm-drop-down>
                       <dcm-drop-down
                               [multiSelectMode]="true"
                               [ngStyle]="line[index].style"
