@@ -33,6 +33,7 @@ import {MatOption, MatSelect} from '@angular/material/select';
 import {FormsModule} from '@angular/forms';
 import {CommonModule, NgClass, NgStyle, NgSwitch} from '@angular/common';
 import {SizeRangePickerComponent} from '../../widgets/size-range-picker/size-range-picker.component';
+import {ResettableDcmDropDownComponent} from "../../widgets/dcm-drop-down/resettable-dcm-drop-down.component";
 
 @Component({
     selector: 'filter-generator',
@@ -42,6 +43,7 @@ import {SizeRangePickerComponent} from '../../widgets/size-range-picker/size-ran
         MatProgressSpinner,
         TrimPipe,
         DcmDropDownComponent,
+        ResettableDcmDropDownComponent,
         ModifiedWidgetComponent,
         IssuerSelectorComponent,
         CodeSelectorComponent,
