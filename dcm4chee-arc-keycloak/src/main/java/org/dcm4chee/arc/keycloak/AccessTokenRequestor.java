@@ -205,7 +205,7 @@ public class AccessTokenRequestor {
             JWSInput jws = new JWSInput(tokenString);
             AccessToken token = jws.readJsonContent(AccessToken.class);
             parseToken(tokenString, kc, identityConfigurer);
-            return AccessControl.isUserInRole(token, role, kc);
+            return AccessControl.isUserInRole(token, role);
         }
     }
 
@@ -231,6 +231,9 @@ public class AccessTokenRequestor {
     }
 
     public boolean verifyJWT(String tokenString, KeycloakClient kc, String role, IdentityConfigurer identityConfigurer) throws Exception {
+        if (role == null)
+            return true;
+
         String serverURL = kc.getKeycloakServerURL();
         String realmName = kc.getKeycloakRealm();
         KeycloakUriBuilder authUrlBuilder = KeycloakUriBuilder.fromUri(serverURL);
@@ -246,7 +249,7 @@ public class AccessTokenRequestor {
         tokenVerifier.verify();
         AccessToken token = tokenVerifier.getToken();
         parseToken(tokenString, kc, identityConfigurer);
-        return role == null || token.getRealmAccess().isUserInRole(role);
+        return AccessControl.isUserInRole(token, role);
     }
 
     private PublicKey getPublicKey(String kid, String jwksUrl, KeycloakClient kc)
