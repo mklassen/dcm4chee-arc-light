@@ -152,16 +152,14 @@ public class AccessControl {
         AccessToken accessToken = null;
 
         // Use token found in the HTTP request, if any
-        if (httpServletRequestInfo != null) {
-            if (httpServletRequestInfo.requestKSC != null) {
-                Set<String> tokenAccessControlIDs = getTokenAccessControlIDs(
-                        httpServletRequestInfo.requestKSC.getTokenString(),
-                        keycloakClient
-                );
-                if (tokenAccessControlIDs != null)
-                    accessControlIDSet.addAll(tokenAccessControlIDs);
-                accessToken = httpServletRequestInfo.requestKSC.getToken();
-            }
+        if (httpServletRequestInfo != null && httpServletRequestInfo.requestKSC != null) {
+            Set<String> tokenAccessControlIDs = getTokenAccessControlIDs(
+                    httpServletRequestInfo.requestKSC.getTokenString(),
+                    keycloakClient
+            );
+            if (tokenAccessControlIDs != null)
+                accessControlIDSet.addAll(tokenAccessControlIDs);
+            accessToken = httpServletRequestInfo.requestKSC.getToken();
         }
 
         // Assign accessControlIDs found in the DICOM association token, if any
@@ -184,11 +182,11 @@ public class AccessControl {
         // - if both http request info and DICOM request association object are null
         //  This happens in e.g. Storage Commitment SCP, which does not store the association in
         //  the retrieve service/context used to access the data
-        boolean overrideRoleBasedAccessControl = AccessControl.isUserInRole(
+        boolean overrideRoleBasedAccessControl = (( requestAssociation == null && httpServletRequestInfo == null ) ||
+                AccessControl.isUserInRole(
                 accessToken,
-                datacareRole,
-                keycloakClient
-        ) || ( requestAssociation == null && httpServletRequestInfo == null );
+                datacareRole
+        ));
 
         if (overrideRoleBasedAccessControl){
             // empty set of token-derived accessControlIDs, which disables filtering on them
@@ -198,7 +196,7 @@ public class AccessControl {
             if (!arcAEAccessControlIDSet.isEmpty())
                 accessControlIDSet.retainAll(arcAEAccessControlIDSet);
 
-            // Having no accessControlIDs will allow user to query/retrieve everything
+            // Having no accessControlIDs would allow user to query/retrieve everything
             // Add '*' accessControlID to ensure that at least one is present
             accessControlIDSet.add("*");
         }
