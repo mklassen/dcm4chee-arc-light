@@ -61,23 +61,20 @@ import java.util.*;
  */
 
 public class AccessControl {
-    public static Set<String> getResourceAccessRoles(AccessToken token, String client_id) {
-        if (token == null)
-            return null;
+    public static Set<String> getRoles(AccessToken accessToken) {
+        Set<String> roles = new HashSet<>();
+        if (accessToken == null)
+            return roles;
 
-        String resource_id = token.getIssuedFor();
-        if (resource_id == null) {
-            if (client_id != null)
-                resource_id = client_id;
-            else
-                resource_id = System.getProperty("ui-client-id", "dcm4chee-arc-ui");
-        }
+        AccessToken.Access access = accessToken.getRealmAccess();
+        if (access != null)
+            roles.addAll(access.getRoles());
 
-        AccessToken.Access access = token.getResourceAccess(resource_id);
-        if (access == null)
-            return Collections.emptySet();
+        access = accessToken.getResourceAccess(accessToken.getIssuedFor());
+        if (access != null)
+            roles.addAll(access.getRoles());
 
-        return access.getRoles();
+        return roles;
     }
 
     public static Set<String> getTokenAccessControlIDs(String tokenString, KeycloakClient keycloakClient){
@@ -131,18 +128,19 @@ public class AccessControl {
         }
     }
 
-    public static boolean isUserInRole(AccessToken token, String role, KeycloakClient keycloakClient){
-        boolean useResourceRoles = Boolean.parseBoolean(System.getProperty("keycloak-use-resource-roles", "false"));
-        AccessToken.Access access;
+    public static boolean isUserInRole(AccessToken token, String role){
+        if (role == null)
+            return true;
 
         if (token == null)
             return false;
 
-        if (useResourceRoles)
-            access = token.getResourceAccess(keycloakClient.getKeycloakClientID());
-        else
-            access = token.getRealmAccess();
-        return role == null || (access != null && access.isUserInRole(role));
+        AccessToken.Access access = token.getRealmAccess();
+        if (token != null && access.isUserInRole(role))
+            return true;
+
+        access = token.getResourceAccess(token.getIssuedFor());
+        return access != null && access.isUserInRole(role);
     }
 
     public static String[] getAccessControlIDs(String[] arcAEAccessControlIDs, HttpServletRequestInfo httpServletRequestInfo, Association requestAssociation, KeycloakClient keycloakClient) {

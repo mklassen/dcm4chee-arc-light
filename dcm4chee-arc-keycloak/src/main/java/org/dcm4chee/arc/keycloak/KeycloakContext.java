@@ -76,11 +76,11 @@ public class KeycloakContext {
     }
 
     public boolean isUserInRole(String role) {
-        return ksc != null && getRoleList().contains(role);
+        return ksc != null && AccessControl.isUserInRole(ksc.getToken(), role);
     }
 
     public String[] getRoles() {
-        return ksc != null ? getRoleList().toArray(StringUtils.EMPTY_STRING) : StringUtils.EMPTY_STRING;
+        return ksc != null ? AccessControl.getRoles(ksc.getToken()).toArray(new String[0]) : new String[0];
     }
 
     private List<String> getRoleList() {
