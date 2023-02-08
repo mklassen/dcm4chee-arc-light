@@ -540,6 +540,7 @@
     <module>dcm4chee-arc-metadata</module>
     <module>dcm4chee-arc-metrics</module>
     <module>dcm4chee-arc-metrics-rs</module>
+    <module>dcm4chee-arc-mgmt-rs</module>
     <module>dcm4chee-arc-mima</module>
     <module>dcm4chee-arc-monitor-rs</module>
     <module>dcm4chee-arc-mpps</module>
