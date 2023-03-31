@@ -34,19 +34,6 @@ public class MgmtRS {
 
     @GET
     @NoCache
-    @Path("keycloak")
-    @Produces("application/json")
-    public String keycloak() {
-        String authServerURL = System.getProperty("ui-auth-server-url", System.getProperty("auth-server-url"));
-        return authServerURL == null ? "{}" :
-                "{\"realm\":\"" + System.getProperty("realm-name", "dcm4che") +
-                        "\",\"resource\":\"" + System.getProperty("rs-client-id","dcm4chee-arc-rs") +
-                        "\",\"auth-server-url\":\"" + authServerURL +
-                        "\"}";
-    }
-
-    @GET
-    @NoCache
     @Path("access")
     @Produces("application/json")
     public Response access() {
@@ -111,9 +98,9 @@ public class MgmtRS {
 
         String deviceDN = "dicomDeviceName=" + device.getDeviceName() + "," + devicesDN;
 
-        return Response.ok("{\"ldap_url\":\"" + map.get(javax.naming.Context.PROVIDER_URL) +
-                "\",\"user-dn\":\"" + map.get(javax.naming.Context.SECURITY_PRINCIPAL) +
-                "\",\"password\":\"" + map.get(javax.naming.Context.SECURITY_CREDENTIALS) +
+        return Response.ok("{\"ldapUrl\":\"" + map.get(javax.naming.Context.PROVIDER_URL) +
+                "\",\"userDN\":\"" + map.get(javax.naming.Context.SECURITY_PRINCIPAL) +
+                "\",\"userPassword\":\"" + map.get(javax.naming.Context.SECURITY_CREDENTIALS) +
                 "\",\"deviceDN\":\"" + deviceDN +
                 "\",\"devicesDN\":\"" + devicesDN +
                 "\",\"configurationDN\":\"" + configurationDN +
