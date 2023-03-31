@@ -105,13 +105,7 @@
     <web-resource-collection>
       <web-resource-name>dcm4chee-arc-mgmt-rs</web-resource-name>
       <url-pattern>/mgmt/*</url-pattern>
-    </web-resource-collection>
-  </security-constraint>
-
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>dcm4chee-arc-mgmt-rs</web-resource-name>
-      <url-pattern>/mgmt/access</url-pattern>
+      <http-method-omission>OPTIONS</http-method-omission>
     </web-resource-collection>
     <auth-constraint>
       <role-name>${reload-user-role:${super-user-role}}</role-name>
