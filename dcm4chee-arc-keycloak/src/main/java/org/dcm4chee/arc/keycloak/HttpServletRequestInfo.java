@@ -63,6 +63,8 @@ public class HttpServletRequestInfo {
     public MediaType contentType;
     public final KeycloakSecurityContext requestKSC;
 
+    public boolean bypassUserAccessControl;
+
 
     private HttpServletRequestInfo(HttpServletRequest request) {
         requesterUserID = KeycloakContext.valueOf(request).getUserName();
@@ -70,6 +72,7 @@ public class HttpServletRequestInfo {
         requesterPort = request.getRemotePort();
         requestURI = request.getRequestURL().toString();
         requestKSC = (KeycloakSecurityContext) request.getAttribute(KeycloakSecurityContext.class.getName());
+        bypassUserAccessControl = false;
         queryString = request.getQueryString();
         localHost = request.getServerName();
     }
@@ -81,6 +84,7 @@ public class HttpServletRequestInfo {
         this.requestURI = requestURI;
         this.queryString = queryStr;
         this.requestKSC = null;
+        this.bypassUserAccessControl = false;
         this.localHost = hostOfURI(requestURI);
     }
 

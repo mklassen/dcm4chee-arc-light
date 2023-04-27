@@ -177,6 +177,15 @@ public class ExporterRS {
             return errResponse("Archive Device Extension not configured for device: " + device.getDeviceName(),
                     Response.Status.NOT_FOUND);
 
+        RetrieveContext ctx = this.retrieveService.newRetrieveContext(this.aet, studyUID, seriesUID, objectUID);
+        ctx.setHttpServletRequestInfo(HttpServletRequestInfo.valueOf(request));
+        try {
+            if (!this.retrieveService.calculateMatches(ctx))
+                return errResponse("Could not find objects to export", Response.Status.NOT_FOUND);
+        } catch (DicomServiceException e){
+            return errResponse(e.getMessage(), Response.Status.BAD_GATEWAY);
+        }
+
         try {
             try {
                 if (exporterID.startsWith("dicom:"))
@@ -203,7 +212,7 @@ public class ExporterRS {
                     objectUID,
                     batchID,
                     scheduledTime(),
-                    HttpServletRequestInfo.valueOf(request));
+                    ctx.getHttpServletRequestInfo());
             if (scheduledTime == null) {
                 QueueDescriptor queue = arcDev.getQueueDescriptor(exporter.getQueueName());
                 if (queue == null)

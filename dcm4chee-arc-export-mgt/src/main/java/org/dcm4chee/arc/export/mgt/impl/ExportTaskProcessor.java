@@ -115,6 +115,7 @@ public class ExportTaskProcessor implements TaskProcessor {
                     task.getRequesterUserID(),
                     task.getRequesterHost(),
                     task.getRequestURI()));
+            exportContext.getHttpServletRequestInfo().bypassUserAccessControl = true;
             outcome = exporter.export(exportContext);
             exportContext.setOutcome(outcome);
         } catch (Throwable e) {

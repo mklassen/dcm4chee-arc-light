@@ -66,6 +66,10 @@ public class AccessControl {
 
     private static final Logger LOG = LoggerFactory.getLogger(AccessControl.class);
 
+    static final List<List<String>>  bypassAccessControlsCallStack = Collections.singletonList(
+            Arrays.asList("org.dcm4chee.arc.export.dicom.DicomExporter", "export")
+    );
+
     public static Set<String> getRoles(AccessToken accessToken) {
         Set<String> roles = new HashSet<>();
         if (accessToken == null)
@@ -156,17 +160,33 @@ public class AccessControl {
         String datacareRole = System.getProperty("datacare-user-role", "datacare");
         AccessToken accessToken = null;
 
+        boolean overrideRoleBasedAccessControl = false;
+
         // Use token found in the HTTP request, if any
-        if (httpServletRequestInfo != null && httpServletRequestInfo.requestKSC != null) {
-            LOG.debug("User token in HTTP request");
-            Set<String> tokenAccessControlIDs = getTokenAccessControlIDs(
-                    httpServletRequestInfo.requestKSC.getTokenString(),
-                    keycloakClient
-            );
-            LOG.debug("Appending access control IDs from HTTP request: " + tokenAccessControlIDs);
-            if (tokenAccessControlIDs != null)
-                accessControlIDSet.addAll(tokenAccessControlIDs);
-            accessToken = httpServletRequestInfo.requestKSC.getToken();
+        if (httpServletRequestInfo != null ) {
+            if (httpServletRequestInfo.requestKSC != null) {
+                LOG.debug("User token in HTTP request");
+                Set<String> tokenAccessControlIDs = getTokenAccessControlIDs(
+                        httpServletRequestInfo.requestKSC.getTokenString(),
+                        keycloakClient
+                );
+                LOG.debug("Appending access control IDs from HTTP request: " + tokenAccessControlIDs);
+                if (tokenAccessControlIDs != null)
+                    accessControlIDSet.addAll(tokenAccessControlIDs);
+                accessToken = httpServletRequestInfo.requestKSC.getToken();
+            }
+            else {
+                // Examine the call stack and override access control if a class/method which is allowed to bypass
+                // access control has originated this call
+                StackTraceElement[] thisStackTrace = Thread.currentThread().getStackTrace();
+
+                overrideRoleBasedAccessControl = bypassAccessControlsCallStack.stream().anyMatch(
+                        el -> Arrays.stream(thisStackTrace).anyMatch(
+                                st -> st.getClassName().equals(el.get(0)) &&
+                                        st.getMethodName().equals(el.get(1))
+                        )
+                );
+            }
         }
 
         boolean userIdentityNegotiationPresent = true;
@@ -197,9 +217,11 @@ public class AccessControl {
         // - if user has datacareRole
         // - if there is a DICOM request association but the User Identity Negotiation is not present
         // - if both http request info and DICOM request association object are null
+        // - if http request info is present, keycloak token is absent, and the stack trace contains known classes/methods
+        //   for which user access control should be bypassed
         //  This happens in e.g. Storage Commitment SCP, which does not store the association in
         //  the retrieve service/context used to access the data
-        boolean overrideRoleBasedAccessControl = (( requestAssociation == null && httpServletRequestInfo == null ) ||
+        overrideRoleBasedAccessControl |= (( requestAssociation == null && httpServletRequestInfo == null ) ||
                 ( (requestAssociation != null ) && !userIdentityNegotiationPresent ) ||
                 AccessControl.isUserInRole(
                 accessToken,
