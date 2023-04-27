@@ -49,6 +49,8 @@ import org.keycloak.common.VerificationException;
 import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.util.JsonSerialization;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.http.HttpRequest;
@@ -61,6 +63,9 @@ import java.util.*;
  */
 
 public class AccessControl {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AccessControl.class);
+
     public static Set<String> getRoles(AccessToken accessToken) {
         Set<String> roles = new HashSet<>();
         if (accessToken == null)
@@ -153,36 +158,49 @@ public class AccessControl {
 
         // Use token found in the HTTP request, if any
         if (httpServletRequestInfo != null && httpServletRequestInfo.requestKSC != null) {
+            LOG.debug("User token in HTTP request");
             Set<String> tokenAccessControlIDs = getTokenAccessControlIDs(
                     httpServletRequestInfo.requestKSC.getTokenString(),
                     keycloakClient
             );
+            LOG.debug("Appending access control IDs from HTTP request: " + tokenAccessControlIDs);
             if (tokenAccessControlIDs != null)
                 accessControlIDSet.addAll(tokenAccessControlIDs);
             accessToken = httpServletRequestInfo.requestKSC.getToken();
         }
 
+        boolean userIdentityNegotiationPresent = true;
+
         // Assign accessControlIDs found in the DICOM association token, if any
         if (null != requestAssociation) {
+
+            LOG.debug("Looking for user token in DICOM association");
             AAssociateAC ac = requestAssociation.getAAssociateAC();
             if (null != ac) {
                 UserIdentityAC userIdentityAC = ac.getUserIdentityAC();
 
                 if (userIdentityAC instanceof ArchiveUserIdentityAC) {
+                    LOG.debug("Appending access control IDs from DICOM association: " + ((ArchiveUserIdentityAC) userIdentityAC).getAccessControlIDs());
                     accessControlIDSet.addAll(
                             ((ArchiveUserIdentityAC) userIdentityAC).getAccessControlIDs()
                     );
                     accessToken = ((ArchiveUserIdentityAC) userIdentityAC).getAccessToken();
+                }
+                else{
+                    LOG.debug("User Identity Negotiation not present. No Access Control ID lookup.");
+                    userIdentityNegotiationPresent = false;
                 }
             }
         }
 
         // override Role-Based Access Control
         // - if user has datacareRole
+        // - if there is a DICOM request association but the User Identity Negotiation is not present
         // - if both http request info and DICOM request association object are null
         //  This happens in e.g. Storage Commitment SCP, which does not store the association in
         //  the retrieve service/context used to access the data
         boolean overrideRoleBasedAccessControl = (( requestAssociation == null && httpServletRequestInfo == null ) ||
+                ( (requestAssociation != null ) && !userIdentityNegotiationPresent ) ||
                 AccessControl.isUserInRole(
                 accessToken,
                 datacareRole
@@ -190,16 +208,20 @@ public class AccessControl {
 
         if (overrideRoleBasedAccessControl){
             // empty set of token-derived accessControlIDs, which disables filtering on them
+            LOG.debug("Overriding role-based access control.");
             accessControlIDSet.clear();
             accessControlIDSet.addAll(arcAEAccessControlIDSet);
         } else {
-            if (!arcAEAccessControlIDSet.isEmpty())
+            if (!arcAEAccessControlIDSet.isEmpty()) {
+                LOG.debug("Appending arc AE access control IDs: " + arcAEAccessControlIDSet);
                 accessControlIDSet.retainAll(arcAEAccessControlIDSet);
+            }
 
             // Having no accessControlIDs would allow user to query/retrieve everything
             // Add '*' accessControlID to ensure that at least one is present
             accessControlIDSet.add("*");
         }
+        LOG.debug("Computed Access Control IDs: " + accessControlIDSet);
 
         return accessControlIDSet.toArray(new String[0]);
     }
