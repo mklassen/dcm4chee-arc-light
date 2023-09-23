@@ -15,7 +15,6 @@ import {PermissionService} from "./helpers/permissions/permission.service";
 import {Observable} from "../../node_modules/rxjs";
 import {HttpClient} from "@angular/common/http";
 import {DcmWebApp} from "./models/dcm-web-app";
-import {Title} from "@angular/platform-browser";
 import {KeycloakService} from "./helpers/keycloak-service/keycloak.service";
 import {Globalvar} from "./constants/globalvar";
 import {KeycloakHttpClient} from "./helpers/keycloak-service/keycloak-http-client.service";
@@ -54,7 +53,6 @@ export class AppComponent implements OnInit {
     showEditAccount = false;
     showScrollButton = false;
     currentServerTime;
-    displayServerTime = false;
     currentClockTime;
     clockInterval;
     j4care = j4care;
@@ -83,7 +81,6 @@ export class AppComponent implements OnInit {
         public dialog: MatDialog,
         public mainservice: AppService,
         private appRequests: AppRequestsService,
-        private titleService: Title,
         private permissionService:PermissionService,
         private keycloakHttpClient:KeycloakHttpClient,
         private _keycloakService: KeycloakService,
@@ -244,25 +241,22 @@ export class AppComponent implements OnInit {
             return `${this.getFullYear()}${j4care.getSingleDateTimeValueFromInt(this.getMonth()+1)}${j4care.getSingleDateTimeValueFromInt(this.getDate())}${j4care.getSingleDateTimeValueFromInt(this.getHours())}${j4care.getSingleDateTimeValueFromInt(this.getMinutes())}${j4care.getSingleDateTimeValueFromInt(this.getSeconds())}`;
         };
         this.initGetDevicename(2);
-        this.setTitle();
 /*        this.setServerTime(()=>{
         });*/
 
-        if ( this.displayServerTime ) {
-            document.addEventListener("visibilitychange", () => {
-                if(document.visibilityState === "visible"){
-                    this.startTime();
-                }else{
-                    if(worker){
-                        worker.postMessage({
-                            serverTime:this.currentServerTime,
-                            idle:document.hidden
-                        });
-                    }
+        document.addEventListener("visibilitychange", () => {
+            if(document.visibilityState === "visible"){
+                this.startTime();
+            }else{
+                if(worker){
+                    worker.postMessage({
+                        serverTime:this.currentServerTime,
+                        idle:document.hidden
+                    });
                 }
-            });
+            }
+        });
         }
-    }
     startTime(){
         if (typeof Worker !== 'undefined') {
             worker.onmessage = ({data}) => {
@@ -533,6 +527,7 @@ export class AppComponent implements OnInit {
                 (res) => {
                     // $this.mainservice["deviceName"] = res.dicomDeviceName;
                     this.initGetPDQServices();
+                    this.startTime();
                     this.dcm4cheeArch = res;
                     $this.mainservice["xRoad"] = res.xRoad || false;
                     if(res["management-url"]){
@@ -542,7 +537,6 @@ export class AppComponent implements OnInit {
                         $this.mainservice["management-http-port"] = res["management-http-port"] || 9990;
                         $this.mainservice["management-host"] = res["management-host"] || window.location.hostname;
                     }
-                    this.displayServerTime = (res["display-server-time"] || "true").toLowerCase() === "true";
                     this.docsUrl = _.get(res, "documentation-url");
                     this.appRequests.getDeviceInfo(res.dicomDeviceName)
                         .subscribe(
@@ -573,13 +567,6 @@ export class AppComponent implements OnInit {
         })
     }
 
-    setTitle() {
-        this.appRequests.getDeviceName()
-            .subscribe(
-                (res) => {
-                    this.titleService.setTitle(res['ui2-web-app-title']);
-                })
-    }
 
 /*    private compareSavedLanguageWithLanguageInPath() {
         try{
