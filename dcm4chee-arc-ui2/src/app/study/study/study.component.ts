@@ -26,6 +26,7 @@ import {
 } from "../../interfaces";
 import {StudyService} from "./study.service";
 import {j4care} from "../../helpers/j4care.service";
+import {J4careHttpService} from "../../helpers/j4care-http.service";
 import {Aet} from "../../models/aet";
 import {PermissionService} from "../../helpers/permissions/permission.service";
 import {AppService} from "../../app.service";
@@ -302,6 +303,7 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
         private cfpLoadingBar:LoadingBarService,
         private deviceConfigurator:DeviceConfiguratorService,
         private viewContainerRef: ViewContainerRef,
+        private httpService:J4careHttpService,
         private dialog: MatDialog,
         private _keycloakService:KeycloakService,
         private changeDetector: ChangeDetectorRef
@@ -1914,32 +1916,59 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
         })
     }
 
+    getInstanceURL(inst, webApp: DcmWebApp) {
+        let url: string = this.service.instanceURL(inst.attrs, webApp);
+        // If this is a Raw Data Storage DICOM
+        if (inst.attrs['00080016'].Value[0] == '1.2.840.10008.5.1.4.1.1.66') {
+            // Download its metadata
+            return this.httpService.get(url + "/metadata", {}, false, this.studyWebService.selectedWebService).pipe(switchMap( response => {
+                let metadata = response[0];
+                // Search for private CFMM tags
+                if ('01770010' in metadata && metadata['01770010'].Value[0].startsWith('Robarts^CFMM') )
+                    // If found, generate a WADO URI which will download the contents (bulk data)
+                    return this.service.wadoURL(this.studyWebService,inst.wadoQueryParams);
+                else
+                    return of(url);
+            } ));
+        }
+        else
+            return of(url);
+    }
+
     downloadZip(object, level, mode) {
                 let token, url, fileName;
-                let param = {
+                let params = new URLSearchParams({
                     accept:'application/zip'
-                };
+                });
                 // dicomdir:true
                 console.log("url",this.service.getDicomURL(mode, this.studyWebService.selectedWebService));
                 if (level === 'study') {
-                    url = this.service.studyURL(object.attrs, this.studyWebService.selectedWebService);
+                    url = of(this.service.studyURL(object.attrs, this.studyWebService.selectedWebService));
                     fileName = this.service.studyFileName(object.attrs);
                 } else if (level === 'series') {
-                    url = this.service.seriesURL(object.attrs, this.studyWebService.selectedWebService);
+                    url = of(this.service.seriesURL(object.attrs, this.studyWebService.selectedWebService));
                     fileName = this.service.seriesFileName(object.attrs);
                 } else if (level === 'instance') {
-                    url = this.service.instanceURL(object.attrs, this.studyWebService.selectedWebService);
+                    url = this.getInstanceURL(object, this.studyWebService.selectedWebService);
                     fileName = this.service.instanceFileName(object.attrs);
                 }
-                this.service.getTokenService(this.studyWebService).subscribe((response)=>{
-                    if(!this.appService.global.notSecure){
-                        token = response.token;
-                    }
-                    if(!this.appService.global.notSecure){
-                        j4care.downloadFile(`${url}?${j4care.objToUrlParams(param)}&access_token=${token}`,`${fileName}.zip`)
-                    }else{
-                        j4care.downloadFile(`${url}?${j4care.objToUrlParams(param)}`,`${fileName}.zip`)
-                    }
+                url.subscribe((url_)=> {
+                    this.service.getTokenService(this.studyWebService).subscribe((response) => {
+                        if (!this.appService.global.notSecure) {
+                            token = response.token;
+                            params.set("access_token", token);
+                        }
+
+                        // Append search params (accept, and possibly access_token) to the URL
+                        let urlObject = document.createElement("a");
+                        urlObject.href = url_;
+                        params.forEach((value, key) => {
+                            urlObject.search += (urlObject.search ? "&" : "") + encodeURIComponent(key) + "=" + encodeURIComponent(value);
+                        });
+
+                        //Download the file
+                        j4care.downloadFile(urlObject.href, `${fileName}.zip`)
+                    });
                 });
     };
 
