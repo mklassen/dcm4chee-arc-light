@@ -45,6 +45,8 @@ import {SelectionActionElement} from "./selection-action-element.models";
 declare var DCM4CHE: any;
 import {catchError, map, switchMap, tap, delay, shareReplay} from "rxjs/operators";
 import {FormatTMPipe} from "../../pipes/format-tm.pipe";
+import {DicomTimePipe} from "../../pipes/dicom-time.pipe";
+import {DicomDatePipe} from "../../pipes/dicom-date.pipe";
 import {FormatDAPipe} from "../../pipes/format-da.pipe";
 import {FormatAttributeValuePipe} from "../../pipes/format-attribute-value.pipe";
 import {AppService} from "../../app.service";
@@ -1722,6 +1724,7 @@ export class StudyService {
                     pathToValue:"00100010.Value.0",
                     pipe: new DynamicPipe(PersonNamePipe, [options.configuredPersonNameFormat])
                 }),
+                /*
                 new TableSchemaElement({
                     type: "pipe",
                     header: $localize `:@@patient_identifiers:Patient Identifiers`,
@@ -1732,6 +1735,7 @@ export class StudyService {
                     calculatedWidth: "40%",
                     pipe: new DynamicPipe(PatientIssuerPipe, [this.appService.global])
                 }),
+                 */
                 new TableSchemaElement({
                     type: "pipe",
                     header: $localize `:@@birth_date:Birth Date`,
@@ -2223,6 +2227,16 @@ export class StudyService {
                     calculatedWidth: "6%"
                 }),
                 new TableSchemaElement({
+                    type: "pipe",
+                    header: $localize `:@@patients_name:Patient's Name`,
+                    headerDescription: $localize `:@@patients_name:Patient's Name`,
+                    widthWeight: 1.5,
+                    calculatedWidth: "20%",
+                    pathToValue:"00100010.Value.0",
+                    pipe: new DynamicPipe(PersonNamePipe, [options.configuredPersonNameFormat])
+                }),
+                /*
+                new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@study_id:Study ID`,
                     pathToValue: "[00200010].Value[0]",
@@ -2230,7 +2244,10 @@ export class StudyService {
                     widthWeight: 0.9,
                     calculatedWidth: "20%",
                     cssClass:"border-left"
-                }), new TableSchemaElement({
+                }),
+                */
+                /*
+                new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@study_instance_uid:Study Instance UID`,
                     pathToValue: "[0020000D].Value[0]",
@@ -2238,24 +2255,24 @@ export class StudyService {
                     widthWeight: 2.5,
                     calculatedWidth: "20%"
                 }),
+                */
                 new TableSchemaElement({
                     type: "pipe",
                     header: $localize `:@@study_date:Study Date`,
-                    pathToValue: "[00080020].Value[0]",
                     headerDescription: $localize `:@@study_date:Study Date`,
                     widthWeight: 0.6,
-                    pipe: new DynamicPipe(CustomDatePipe, [options.configuredDateTimeFormats]),
+                    pipe: new DynamicPipe(DicomDatePipe, ["00080020",]),
                     calculatedWidth: "20%"
                 }),
                 new TableSchemaElement({
                     type: "pipe",
                     header: $localize `:@@study.study_time:Study Time`,
-                    pathToValue: "[00080030].Value[0]",
                     headerDescription: $localize `:@@study.study_time:Study Time`,
-                    pipe: new DynamicPipe(CustomDatePipe, [options.configuredDateTimeFormats]),
+                    pipe: new DynamicPipe(DicomTimePipe, ["00080030",]),
                     widthWeight: 0.6,
                     calculatedWidth: "20%"
                 }),
+                /*
                 new TableSchemaElement({
                     type: "pipe",
                     header: $localize `:@@study.r._physicians_name:R. Physician's Name`,
@@ -2265,6 +2282,8 @@ export class StudyService {
                     pathToValue:"00080090.Value.0",
                     pipe: new DynamicPipe(PersonNamePipe, [options.configuredPersonNameFormat])
                 }),
+                */
+                /*
                 new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@accession_number:Accession Number`,
@@ -2273,6 +2292,8 @@ export class StudyService {
                     widthWeight: 1,
                     calculatedWidth: "20%"
                 }),
+                 */
+                /*
                 new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@admission_id:Admission ID`,
@@ -2281,6 +2302,7 @@ export class StudyService {
                     widthWeight: 1,
                     calculatedWidth: "20%"
                 }),
+                */
                 new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@modalities:Modalities`,
@@ -2299,7 +2321,7 @@ export class StudyService {
                 }),
                 new TableSchemaElement({
                     type: "value",
-                    header: $localize `:@@number_of_related_series:#S`,
+                    header: $localize `:@@number_of_related_series:# Series`,
                     pathToValue: "[00201206].Value[0]",
                     headerDescription: $localize `:@@number_of_study_related_series:Number of Study Related Series`,
                     widthWeight: 0.3,
@@ -2307,7 +2329,7 @@ export class StudyService {
                 }),
                 new TableSchemaElement({
                     type: "value",
-                    header: $localize `:@@number_of_instances:#I`,
+                    header: $localize `:@@number_of_instances:# Inst.`,
                     pathToValue: "[00201208].Value[0]",
                     headerDescription: $localize `:@@number_of_study_related_instances:Number of Study Related Instances`,
                     widthWeight: 0.3,
@@ -2675,28 +2697,26 @@ export class StudyService {
                     header: $localize `:@@series_number:Series Number`,
                     pathToValue: "00200011.Value[0]",
                     headerDescription: $localize `:@@series_number:Series Number`,
-                    widthWeight: 0.9,
-                    calculatedWidth: "20%"
+                    widthWeight: 0.5,
+                    calculatedWidth: "5%"
                 }),
                 new TableSchemaElement({
                     type: "pipe",
-                    header: $localize `:@@study.pps_start_date:PPS Start Date`,
-                    pathToValue: "[00400244].Value[0]",
-                    showBorderPath:"[00400244].showBorder",
-                    headerDescription: $localize `:@@study.performed_procedure_step_start_date:Performed Procedure Step Start Date`,
-                    pipe: new DynamicPipe(CustomDatePipe, [options.configuredDateTimeFormats]),
+                    header: $localize `:@@series_date:Series Date`,
+                    showBorderPath:"[00080021].showBorder",
+                    headerDescription: $localize `:@@series_date:Series Date`,
+                    pipe: new DynamicPipe(DicomDatePipe, ["00080021",]),
                     widthWeight: 0.6,
-                    calculatedWidth: "20%"
+                    calculatedWidth: "15%"
                 }),
                 new TableSchemaElement({
                     type: "pipe",
-                    header: $localize `:@@study.pps_start_time:PPS Start Time`,
-                    pathToValue: "[00400245].Value[0]",
-                    showBorderPath:"[00400245].showBorder",
-                    headerDescription: $localize `:@@study.performed_procedure_step_start_time:Performed Procedure Step Start Time`,
-                    pipe: new DynamicPipe(CustomDatePipe, [options.configuredDateTimeFormats]),
+                    header: $localize `:@@series_date:Series Time`,
+                    showBorderPath:"[00080031].showBorder",
+                    headerDescription: $localize `:@@series_date:Series Time`,
+                    pipe: new DynamicPipe(DicomTimePipe, ["00080031",]),
                     widthWeight: 0.6,
-                    calculatedWidth: "20%"
+                    calculatedWidth: "15%"
                 }),
                 new TableSchemaElement({
                     type: "value",
@@ -2704,7 +2724,7 @@ export class StudyService {
                     pathToValue: "00180015.Value[0]",
                     headerDescription: $localize `:@@body_part_examined:Body Part Examined`,
                     widthWeight: 0.9,
-                    calculatedWidth: "20%"
+                    calculatedWidth: "5%"
                 }),
                 new TableSchemaElement({
                     type: "value",
@@ -2712,23 +2732,23 @@ export class StudyService {
                     pathToValue: "00080060.Value[0]",
                     headerDescription: $localize `:@@modality:Modality`,
                     widthWeight: 0.9,
-                    calculatedWidth: "20%"
+                    calculatedWidth: "5%"
                 }),
                 new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@series_description:Series Description`,
                     pathToValue: "0008103E.Value[0]",
                     headerDescription: $localize `:@@series_description:Series Description`,
-                    widthWeight: 0.9,
-                    calculatedWidth: "20%"
+                    widthWeight: 3,
+                    calculatedWidth: "40%"
                 }),
                 new TableSchemaElement({
                     type: "value",
                     header: $localize `:@@number_of_instances:#I`,
                     pathToValue: "00201209.Value[0]",
                     headerDescription: $localize `:@@number_of_series_related_instances:Number of Series Related Instances`,
-                    widthWeight: 0.9,
-                    calculatedWidth: "20%"
+                    widthWeight: 0.6,
+                    calculatedWidth: "10%"
                 }),
                 new TableSchemaElement({
                     type: "actions",
@@ -2985,21 +3005,19 @@ export class StudyService {
                 }),
                 new TableSchemaElement({
                     type: "pipe",
-                    header: $localize `:@@content_date:Content Date`,
-                    pathToValue: "00080023.Value[0]",
-                    headerDescription: $localize `:@@content_date:Content Date`,
-                    pipe: new DynamicPipe(CustomDatePipe, [options.configuredDateTimeFormats]),
-                    widthWeight: 0.9,
-                    calculatedWidth: "20%"
+                    header: $localize `:@@series_date:Content Date`,
+                    headerDescription: $localize `:@@series_date:Content Date`,
+                    pipe: new DynamicPipe(DicomDatePipe, ["00080023",]),
+                    widthWeight: 0.6,
+                    calculatedWidth: "15%"
                 }),
                 new TableSchemaElement({
                     type: "pipe",
                     header: $localize `:@@study.content_time:Content Time`,
-                    pathToValue: "00080033.Value[0]",
                     headerDescription: $localize `:@@study.content_time:Content Time`,
-                    pipe: new DynamicPipe(CustomDatePipe, [options.configuredDateTimeFormats]),
-                    widthWeight: 0.9,
-                    calculatedWidth: "20%"
+                    pipe: new DynamicPipe(DicomTimePipe, ["00080033",]),
+                    widthWeight: 0.6,
+                    calculatedWidth: "15%"
                 }),
                 new TableSchemaElement({
                     type: "pipe",
@@ -3741,7 +3759,7 @@ export class StudyService {
                     headerDescription: $localize `:@@study_date:Study Date`,
                     pipe: new DynamicPipe(CustomDatePipe, [options.configuredDateTimeFormats]),
                     widthWeight: 0.6,
-                    calculatedWidth: "20%"
+                    calculatedWidth: "15%"
                 }),
                 new TableSchemaElement({
                     type: "pipe",
@@ -3751,7 +3769,7 @@ export class StudyService {
                     headerDescription: $localize `:@@study.study_time:Study Time`,
                     pipe: new DynamicPipe(CustomDatePipe, [options.configuredDateTimeFormats]),
                     widthWeight: 0.6,
-                    calculatedWidth: "20%"
+                    calculatedWidth: "15%"
                 }),
                 new TableSchemaElement({
                     type: "value",
