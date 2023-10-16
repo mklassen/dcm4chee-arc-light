@@ -14,6 +14,7 @@ registerLocaleData(localeDe, 'de', localeDeExtra);
 
 if (environment.production) {
   enableProdMode();
+  window.console.log = window.console.info = () => { }
 }
 
 

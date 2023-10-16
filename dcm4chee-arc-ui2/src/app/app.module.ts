@@ -95,6 +95,8 @@ import {MY_FORMATS} from './constants/globalvar';
 import {MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter} from '@angular/material-moment-adapter';
 
 import { CustomDatePipe } from './pipes/custom-date.pipe';
+import {DicomTimePipe} from "./pipes/dicom-time.pipe";
+import {DicomDatePipe} from "./pipes/dicom-date.pipe";
 import {UploadFilesService} from './widgets/dialogs/upload-files/upload-files.service';
 import {MatSelectModule} from '@angular/material/select';
 import {MatCheckboxModule} from '@angular/material/checkbox';
@@ -306,6 +308,8 @@ import { MatFormFieldModule} from '@angular/material/form-field';
         ContentDescriptionPipe,
         PatientIssuerPipe,
         PersonNamePipe,
+        DicomTimePipe,
+        DicomDatePipe,
         ArrayToStringPipe,
         OptionService,
         KeycloakService,
