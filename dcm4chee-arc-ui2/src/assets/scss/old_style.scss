@@ -62,6 +62,7 @@ body{
 		background: transparent;
 		background-image: url("/resources/img/logo.png"), url("../img/logo.png");
 		background-repeat: no-repeat;
+		background-size: contain;
 	    height: 42px;
 	    margin-left: 10px;
 	    //opacity: 0.7;
