@@ -88,6 +88,8 @@ public class Resource {
                 intSystemProperty("jboss.redirect.management.http.port",
                         intSystemProperty("jboss.management.http.port", 9990)));
         sb.append(",\"default-web-app\":\"").append(System.getProperty("default-web-app", "DCM4CHEE")).append("\"");
+        sb.append(",\"display-server-time\":\"").append(System.getProperty("display-server-time", "false")).append("\"");
+        sb.append(",\"ui2-web-app-title\":\"").append(System.getProperty("ui2-web-app-title", "dcm4chee-arc-ui")).append("\"");
         sb.append(",\"keycloak-use-resource-roles\":\"").append(System.getProperty("keycloak-use-resource-roles", "false")).append("\"");
         sb.append(",\"ui-client-id\":\"").append(System.getProperty("ui-client-id", "dcm4chee-arc-ui")).append("\"");
         sb.append(",\"documentation-url\":\"").append(System.getProperty("documentation-url", "/docs")).append("\"");
