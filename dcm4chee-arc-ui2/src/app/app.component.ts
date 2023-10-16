@@ -51,6 +51,7 @@ export class AppComponent implements OnInit {
     authServerUrl;
     docsUrl = '/docs';
     showMenu = false;
+    showEditAccount = false;
     showScrollButton = false;
     currentServerTime;
     currentClockTime;
@@ -570,6 +571,7 @@ export class AppComponent implements OnInit {
                         $this.mainservice['management-http-port'] = res['management-http-port'] || 9990;
                         $this.mainservice['management-host'] = res['management-host'] || window.location.hostname;
                     }
+                    this.docsUrl = _.get(res, "documentation-url");
                     this.appRequests.getDeviceInfo(res.dicomDeviceName)
                         .subscribe(
                             arc => {
