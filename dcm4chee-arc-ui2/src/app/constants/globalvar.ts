@@ -4963,7 +4963,7 @@ export class Globalvar {
             }, {
                 tag:"person-name-picker",
                 filterKey:"PatientName",
-                placeholder:$localize `:@@patient_family_name:Patient family name`,
+                placeholder:$localize `:@@patient_family_name:Patient name`,
                 description:$localize `:@@patient_family_name_tooltip:Order of name components in the search field differs from the rendered person names in the list`
             }, {
                 tag:"checkbox",
@@ -5016,6 +5016,7 @@ export class Globalvar {
                 tag:"input",
                 type:"text",
                 filterKey:"StudyDescription",
+                toUpper: true,
                 description:$localize `:@@study_description:Study Description`,
                 placeholder:$localize `:@@study_description:Study Description`
             }, {
@@ -5175,6 +5176,7 @@ export class Globalvar {
                     tag:"input",
                     type:"text",
                     filterKey:"StudyDescription",
+                    toUpper: true,
                     description:$localize `:@@study_description:Study Description`,
                     placeholder:$localize `:@@study_description:Study Description`
                 }, {
@@ -5865,6 +5867,13 @@ export class Globalvar {
                 ],
                 description:$localize `:@@include_field:Include field`,
                 placeholder:$localize `:@@include_field:Include field`,
+            }, {
+                tag: "input",
+                type: "text",
+                filterKey: "StudyDescription",
+                toUpper: true,
+                description: $localize`:@@study_description:Study Description`,
+                placeholder: $localize`:@@study_description:Study Description`,
             }
         ];
     }
@@ -5904,7 +5913,7 @@ export class Globalvar {
             }, {
                 tag:"person-name-picker",
                 filterKey:"PatientName",
-                placeholder:$localize `:@@patient_family_name:Patient family name`,
+                placeholder:$localize `:@@patient_family_name:Patient name`,
                 description:$localize `:@@person_family_name_tooltip:Order of name components in the search field differs from the rendered person names in the list`
             }, {
                 tag:"checkbox",

@@ -186,7 +186,7 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
         tableSchema:this.getSchema(),
         config:{
             offset:0,
-            showCheckboxes:false
+            showCheckboxes:true
         }
     };
     // studyDevice:StudyDevice;
