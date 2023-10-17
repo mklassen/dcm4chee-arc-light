@@ -4665,8 +4665,7 @@ export class Globalvar {
     }
 
     static STUDY_FILTER_SCHEMA(aets, storages, institutions, hidden?):FilterSchema{
-        if(hidden) {
-            return [
+        let elements: FilterSchema = [
                 {
                     tag:"p-calendar",
                     filterKey:"PatientBirthDate",
@@ -4929,10 +4928,7 @@ export class Globalvar {
                     ],
                     placeholder:$localize `:@@include_defaults:Include Defaults`,
                     description:$localize `:@@include_defaults_desc:Enable to return only the attributes specified by Query Parameter 'includefield' without including the default set of attributes specified by DICOM Part 18`
-                }
-            ];
-        }
-        return [
+                },
             {
                 tag:"editable-select",
                 options:aets,
@@ -5085,6 +5081,70 @@ export class Globalvar {
                 placeholder:$localize `:@@limit_of_studies:Limit of studies`
             }
         ];
+        if (hidden) {
+            var keys: string[] = [
+                'PatientBirthDate',
+                'PatientSex',
+                'patientVerificationStatus',
+                'ResponsiblePerson',
+                'AdmissionID',
+                $localize `:@@issuer_of_admission_id_sequence:Issuer of Admission ID Sequence`,
+                'StudyID',
+                'StudySizeInKB',
+                'ExpirationState',
+                'ExpirationDate',
+                'ExternalRetrieveAET',
+                'ExternalRetrieveAET!',
+                'incomplete',
+                'retrievefailed',
+                'ReferringPhysicianName',
+                'storageID',
+                'storageClustered',
+                'storageExported',
+                'requested',
+                'StationName',
+                'BodyPartExamined',
+                'SeriesDescription',
+                'ReceivingApplicationEntityTitleOfSeries',
+                'SendingPresentationAddressOfSeries',
+                'ReceivingPresentationAddressOfSeries',
+                'SendingHL7ApplicationOfSeries',
+                'SendingHL7FacilityOfSeries',
+                'ReceivingHL7ApplicationOfSeries',
+                'ReceivingHL7FacilityOfSeries',
+                'SOPClassesInStudy',
+                $localize`:@@modified:Modified`,
+                'compressionfailed',
+                'storageVerificationFailed',
+                'metadataUpdateFailed',
+                'includedefaults'];
+        } else {
+            var keys: string[] = [
+                'aet',
+                'PatientName',
+                'fuzzymatching',
+                'PatientID',
+                $localize `:@@issuer_of_patient:Issuer of Patient`,
+                'AccessionNumber',
+                'StudyDescription',
+                $localize `:@@issuer_of_accession_number_seq:Issuer of Accession Number Sequence`,
+                'StudyInstanceUID',
+                'StudyDate',
+                'StudyTime',
+                'StudyReceiveDateTime',
+                'StudyAccessDateTime',
+                'ModalitiesInStudy',
+                'allOfModalitiesInStudy',
+                'InstitutionName',
+                'InstitutionalDepartmentName',
+                'SendingApplicationEntityTitleOfSeries',
+                'includefield',
+                'limit'];
+        }
+        return keys.map( (x) => (
+            elements.find( (elem) => (
+                (elem.filterKey != null && elem.filterKey == x) || elem.description == x
+            ) ) ) );
     }
     static getInstitutionFilterSchemaElement(institutions):FilterSchemaElement{
         if( j4care.isSet(institutions)){
