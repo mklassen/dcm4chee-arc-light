@@ -5119,16 +5119,21 @@ export class Globalvar {
         ];
         if (hidden) {
             var keys: string[] = [
+                'allOfModalitiesInStudy',
+                'InstitutionName',
+                $localize `:@@accession_number_issuer:Accession Number & Issuer of Accession Number Sequence`,
+                'InstitutionalDepartmentName',
                 'PatientBirthDate',
                 'PatientSex',
                 'patientVerificationStatus',
                 'ResponsiblePerson',
-                'AdmissionID',
-                $localize `:@@issuer_of_admission_id_sequence:Issuer of Admission ID Sequence`,
+                $localize `:@@admission_id_issuer:Admission ID & Issuer of Admission ID Sequence`,
                 'StudyID',
                 'StudySizeInKB',
                 'ExpirationState',
                 'ExpirationDate',
+                'StudyReceiveDateTime',
+                'StudyAccessDateTime',
                 'ExternalRetrieveAET',
                 'ExternalRetrieveAET!',
                 'incomplete',
@@ -5138,7 +5143,6 @@ export class Globalvar {
                 'storageClustered',
                 'storageExported',
                 'requested',
-                'StationName',
                 'BodyPartExamined',
                 'SeriesDescription',
                 'ReceivingApplicationEntityTitleOfSeries',
@@ -5153,29 +5157,24 @@ export class Globalvar {
                 'compressionfailed',
                 'storageVerificationFailed',
                 'metadataUpdateFailed',
-                'includedefaults'];
+                'includedefaults'
+            ];
         } else {
             var keys: string[] = [
                 'aet',
                 'PatientName',
                 'fuzzymatching',
-                'PatientID',
-                $localize `:@@issuer_of_patient:Issuer of Patient`,
-                'AccessionNumber',
+                $localize `:@@patient_identifier:Patient Identifier`,
+                'includefield',
                 'StudyDescription',
-                $localize `:@@issuer_of_accession_number_seq:Issuer of Accession Number Sequence`,
+                'ModalitiesInStudy',
+                'limit',
+                'SendingApplicationEntityTitleOfSeries',
+                'StationName',
                 'StudyInstanceUID',
                 'StudyDate',
                 'StudyTime',
-                'StudyReceiveDateTime',
-                'StudyAccessDateTime',
-                'ModalitiesInStudy',
-                'allOfModalitiesInStudy',
-                'InstitutionName',
-                'InstitutionalDepartmentName',
-                'SendingApplicationEntityTitleOfSeries',
-                'includefield',
-                'limit'];
+            ];
         }
         return keys.map( (x) => (
             elements.find( (elem) => (
