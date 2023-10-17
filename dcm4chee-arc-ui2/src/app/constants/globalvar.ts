@@ -5083,6 +5083,11 @@ export class Globalvar {
         ];
         if (hidden) {
             var keys: string[] = [
+                'allOfModalitiesInStudy',
+                'InstitutionName',
+                'AccessionNumber',
+                $localize `:@@issuer_of_accession_number_seq:Issuer of Accession Number Sequence`,
+                'InstitutionalDepartmentName',
                 'PatientBirthDate',
                 'PatientSex',
                 'patientVerificationStatus',
@@ -5093,6 +5098,8 @@ export class Globalvar {
                 'StudySizeInKB',
                 'ExpirationState',
                 'ExpirationDate',
+                'StudyReceiveDateTime',
+                'StudyAccessDateTime',
                 'ExternalRetrieveAET',
                 'ExternalRetrieveAET!',
                 'incomplete',
@@ -5117,7 +5124,8 @@ export class Globalvar {
                 'compressionfailed',
                 'storageVerificationFailed',
                 'metadataUpdateFailed',
-                'includedefaults'];
+                'includedefaults'
+            ];
         } else {
             var keys: string[] = [
                 'aet',
@@ -5125,21 +5133,15 @@ export class Globalvar {
                 'fuzzymatching',
                 'PatientID',
                 $localize `:@@issuer_of_patient:Issuer of Patient`,
-                'AccessionNumber',
                 'StudyDescription',
-                $localize `:@@issuer_of_accession_number_seq:Issuer of Accession Number Sequence`,
+                'ModalitiesInStudy',
+                'limit',
+                'includefield',
+                'SendingApplicationEntityTitleOfSeries',
                 'StudyInstanceUID',
                 'StudyDate',
                 'StudyTime',
-                'StudyReceiveDateTime',
-                'StudyAccessDateTime',
-                'ModalitiesInStudy',
-                'allOfModalitiesInStudy',
-                'InstitutionName',
-                'InstitutionalDepartmentName',
-                'SendingApplicationEntityTitleOfSeries',
-                'includefield',
-                'limit'];
+            ];
         }
         return keys.map( (x) => (
             elements.find( (elem) => (
