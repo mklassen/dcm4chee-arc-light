@@ -67,9 +67,6 @@
         <div class="time" i18n-title="@@title.app.server_time_param" title="Server time: {{j4care.fullDateToString(currentServerTime)}}">{{currentServerTime.getHours() < 10 ? '0'+currentServerTime.getHours():currentServerTime.getHours()}}:{{currentServerTime.getMinutes() < 10 ? '0'+currentServerTime.getMinutes():currentServerTime.getMinutes()}}:{{currentServerTime.getSeconds() < 10 ? '0'+currentServerTime.getSeconds():currentServerTime.getSeconds()}}</div>
         <div class="text">{{mainservice.archiveDeviceName || myDeviceName}}</div>
     </ng-container>
-    <ng-container *ngIf="dcmuiHideClock">
-        <div class="text">{{mainservice.archiveDeviceName || myDeviceName}}</div>
-    </ng-container>
 </div>
 <div class="background"></div>
 <!--<app-widgets></app-widgets>-->
