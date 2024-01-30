@@ -14,7 +14,7 @@ body{
 		//background: url("../img/156265438.jpg");
 		//background: url("../img/155539853.jpg");
 		background: linear-gradient(180deg, #3b6b8f8a 0%, rgb(87 216 255 / 65%) 100%);
-		background-image: url("/resources/img/bg.jpg"), url("../img/bg.jpg");
+		background-image: url("../img/bg.jpg");
         background-repeat: no-repeat;
         background-size: 100%;
 		-webkit-filter: blur(5px);
@@ -60,7 +60,7 @@ body{
 	}
 	.logo{
 		background: transparent;
-		background-image: url("/resources/img/logo.png"), url("../img/logo.png");
+		background-image: url("../img/logo.png");
 		background-repeat: no-repeat;
 		background-size: contain;
 	    height: 42px;
