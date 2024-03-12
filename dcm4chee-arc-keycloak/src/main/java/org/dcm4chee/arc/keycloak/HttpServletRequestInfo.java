@@ -41,7 +41,7 @@
 
 package org.dcm4chee.arc.keycloak;
 
-import org.keycloak.KeycloakSecurityContext;
+import org.wildfly.security.http.oidc.OidcSecurityContext;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -60,7 +60,7 @@ public class HttpServletRequestInfo {
     public final String queryString;
     public final String localHost;
     public MediaType contentType;
-    public final KeycloakSecurityContext requestKSC;
+    public final OidcSecurityContext requestSecurityContext;
 
 
     private HttpServletRequestInfo(HttpServletRequest request) {
@@ -68,7 +68,7 @@ public class HttpServletRequestInfo {
         requesterHost = request.getRemoteHost();
         requesterPort = request.getRemotePort();
         requestURI = request.getRequestURL().toString();
-        requestKSC = (KeycloakSecurityContext) request.getAttribute(KeycloakSecurityContext.class.getName());
+        requestSecurityContext = (OidcSecurityContext) request.getAttribute(OidcSecurityContext.class.getName());
         queryString = request.getQueryString();
         localHost = request.getServerName();
     }
@@ -79,7 +79,7 @@ public class HttpServletRequestInfo {
         this.requesterPort = 0;
         this.requestURI = requestURI;
         this.queryString = queryStr;
-        this.requestKSC = null;
+        this.requestSecurityContext = null;
         this.localHost = hostOfURI(requestURI);
     }
 
