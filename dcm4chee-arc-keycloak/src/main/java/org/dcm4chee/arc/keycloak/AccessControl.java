@@ -46,11 +46,14 @@ import org.dcm4che3.net.pdu.AAssociateAC;
 import org.dcm4che3.net.pdu.UserIdentityAC;
 import org.keycloak.TokenVerifier;
 import org.keycloak.common.VerificationException;
+import org.keycloak.jose.jws.JWSInput;
+import org.keycloak.jose.jws.JWSInputException;
 import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.util.JsonSerialization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wildfly.security.http.oidc.RealmAccessClaim;
 
 import java.io.IOException;
 import java.net.http.HttpRequest;
@@ -70,20 +73,31 @@ public class AccessControl {
             Arrays.asList("org.dcm4chee.arc.export.dicom.DicomExporter", "export")
     );
 
-    public static Set<String> getRoles(AccessToken accessToken) {
+    public static Set<String> getRoles(org.wildfly.security.http.oidc.AccessToken accessToken) {
         Set<String> roles = new HashSet<>();
         if (accessToken == null)
             return roles;
 
-        AccessToken.Access access = accessToken.getRealmAccess();
+        RealmAccessClaim access = accessToken.getRealmAccessClaim();
         if (access != null)
             roles.addAll(access.getRoles());
 
-        access = accessToken.getResourceAccess(accessToken.getIssuedFor());
+        access = accessToken.getResourceAccessClaim(accessToken.getClaimValueAsString("azp"));
         if (access != null)
             roles.addAll(access.getRoles());
 
         return roles;
+    }
+
+    public static AccessToken getKeycloakAccessToken(String accessTokenString){
+        AccessToken keycloakAccessToken = null;
+        try{
+            JWSInput jws = new JWSInput(accessTokenString);
+            keycloakAccessToken = jws.readJsonContent(AccessToken.class);
+        }
+        catch (JWSInputException ignored) {
+        }
+        return keycloakAccessToken;
     }
 
     public static Set<String> getTokenAccessControlIDs(String tokenString, KeycloakClient keycloakClient){
@@ -137,6 +151,10 @@ public class AccessControl {
         }
     }
 
+    public static boolean isUserInRole(String tokenString, String role){
+        return isUserInRole(getKeycloakAccessToken(tokenString), role);
+    }
+
     public static boolean isUserInRole(AccessToken token, String role){
         if (role == null)
             return true;
@@ -145,7 +163,7 @@ public class AccessControl {
             return false;
 
         AccessToken.Access access = token.getRealmAccess();
-        if (token != null && access.isUserInRole(role))
+        if (access.isUserInRole(role))
             return true;
 
         access = token.getResourceAccess(token.getIssuedFor());
@@ -164,16 +182,16 @@ public class AccessControl {
 
         // Use token found in the HTTP request, if any
         if (httpServletRequestInfo != null ) {
-            if (httpServletRequestInfo.requestKSC != null) {
+            if (httpServletRequestInfo.requestSecurityContext != null) {
                 LOG.debug("User token in HTTP request");
                 Set<String> tokenAccessControlIDs = getTokenAccessControlIDs(
-                        httpServletRequestInfo.requestKSC.getTokenString(),
+                        httpServletRequestInfo.requestSecurityContext.getTokenString(),
                         keycloakClient
                 );
                 LOG.debug("Appending access control IDs from HTTP request: " + tokenAccessControlIDs);
                 if (tokenAccessControlIDs != null)
                     accessControlIDSet.addAll(tokenAccessControlIDs);
-                accessToken = httpServletRequestInfo.requestKSC.getToken();
+                accessToken = getKeycloakAccessToken(httpServletRequestInfo.requestSecurityContext.getTokenString());
             }
             else {
                 // Examine the call stack and override access control if a class/method which is allowed to bypass
