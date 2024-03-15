@@ -51,6 +51,18 @@
 
   <artifactId>dcm4chee-arc-entity</artifactId>
 
+  <pluginRepositories>
+    <pluginRepository>
+      <id>www.dcm4che.org</id>
+      <name>dcm4che Repository</name>
+      <url>https://www.dcm4che.org/maven2</url>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>daily</updatePolicy>
+      </releases>
+    </pluginRepository>
+  </pluginRepositories>
+
   <dependencies>
     <dependency>
       <groupId>org.dcm4che.dcm4chee-arc</groupId>
