@@ -245,7 +245,9 @@ class InstanceQuery extends AbstractQuery {
                         context.getQueryParam().getQueryRetrieveView().getShowInstancesRejectedByCodes()),
                 codeCache.findOrCreateEntities(
                         context.getQueryParam().getQueryRetrieveView().getHideRejectionNotesWithCodes()));
-        builder.accessControl(predicates, study, context.getAccessControlIDs());
+        String [] accessControlIDs = context.getAccessControlIDs();
+        builder.seriesAccessControl(predicates, series, accessControlIDs);
+        builder.accessControl(predicates, study, accessControlIDs);
         if (!predicates.isEmpty())
             q.where(predicates.toArray(new Predicate[0]));
         return q;

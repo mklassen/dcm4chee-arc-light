@@ -824,10 +824,9 @@ public class QueryBuilder {
     }
 
     private static Predicate seriesAccessControlPredicate(Path<Series> series, String[] accessControlIDs) {
-        String[] a = new String[accessControlIDs.length + 1];
-        a[0] = "*";
-        System.arraycopy(accessControlIDs, 0, a, 1, accessControlIDs.length);
-        return series.get(Series_.accessControlID).in(a);
+        Set<String> filter = new HashSet<>(Arrays.asList(accessControlIDs));
+        filter.add("*");
+        return series.get(Series_.accessControlID).in(filter);
     }
 
     private <T, Z> void seriesLevelPredicates(List<Predicate> predicates, CriteriaQuery<T> q,
