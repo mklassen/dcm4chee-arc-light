@@ -68,6 +68,13 @@
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-admin-client</artifactId>
       <scope>provided</scope>
+      <version>${keycloak.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-core</artifactId>
+      <scope>provided</scope>
+      <version>${keycloak.version}</version>
     </dependency>
     <dependency>
       <groupId>org.wildfly.security</groupId>
