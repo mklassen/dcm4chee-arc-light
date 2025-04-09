@@ -1321,6 +1321,9 @@ export class j4care {
     */
     static setZeroPrefix(str){
         try{
+            if (str == null)
+                return str;
+
             if(typeof str === "number"){
                 str = str.toString();
             }
@@ -1521,6 +1524,9 @@ export class j4care {
     * */
     static join(array:string[],joinString:string, lastJoinString?:string){
         try{
+            if (array == null)
+                return "";
+
             if(array.length > 1){
                 if(lastJoinString){
                     return `${array.slice(0,-1).join(joinString)}${lastJoinString}${array.slice(-1)}`;
