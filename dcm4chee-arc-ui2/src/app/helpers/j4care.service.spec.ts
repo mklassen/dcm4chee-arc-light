@@ -69,12 +69,19 @@ describe('j4care', () => {
     });
 
     it("Should format date", () => {
-        expect(j4care.formatDate(new Date("2018-11-01T12:32:01.582+01:00"), 'yyyy.MM.dd HH:mm:ss.SSS')).toBe("2018.11.01 12:32:01.582");
-        expect(j4care.formatDate(new Date("2018-11-01T13:32:40.582+01:00"), 'HH:mm:ss.SSS')).toBe("13:32:40.582");
-        expect(j4care.formatDate(new Date("2018-11-03T02:04:05.582+01:00"), 'HH:mm')).toBe("02:04");
-        expect(j4care.formatDate(new Date("2018-02-03T02:04:05.582+01:00"), 'yyyyMMdd')).toBe("20180203");
-        expect(j4care.formatDate(new Date("2018-02-03T02:04:05.582+01:00"), undefined)).toBe("20180203");
-        expect(j4care.formatDate(new Date("2018-02-00T02:04:05.582+01:00"), "yyyy-MM-dd")).toBe("");
+        const date = new Date("2018-11-01T12:32:01.582+01:00");
+        const offset = date.getTimezoneOffset();
+        const offsetHours = Math.floor(Math.abs(offset / 60));
+        const offsetMins = Math.abs(offset % 60);
+        // Timezone offset is the opposite sign of the timezone descriptor
+        const timezone = (offset < 0 ? '+' : '-') + (offsetHours < 10 ? '0' : '') + offsetHours + ':' + (offsetMins < 10 ? '0' : '') + offsetMins;
+
+        expect(j4care.formatDate(new Date("2018-11-01T12:32:01.582" + timezone), 'yyyy.MM.dd HH:mm:ss.SSS')).toBe("2018.11.01 12:32:01.582");
+        expect(j4care.formatDate(new Date("2018-11-01T13:32:40.582" + timezone), 'HH:mm:ss.SSS')).toBe("13:32:40.582");
+        expect(j4care.formatDate(new Date("2018-11-03T02:04:05.582" + timezone), 'HH:mm')).toBe("02:04");
+        expect(j4care.formatDate(new Date("2018-02-03T02:04:05.582" + timezone), 'yyyyMMdd')).toBe("20180203");
+        expect(j4care.formatDate(new Date("2018-02-03T02:04:05.582" + timezone), undefined)).toBe("20180203");
+        expect(j4care.formatDate(new Date("2018-02-00T02:04:05.582" + timezone), "yyyy-MM-dd")).toBe("");
     });
 
     it("Should get the main aet", () => {
