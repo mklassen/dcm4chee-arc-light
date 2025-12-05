@@ -2441,7 +2441,7 @@ export class StudyService {
                 }),
                 new TableSchemaElement({
                     type: "value",
-                    header: $localize `:@@number_of_related_series:# Series`,
+                    header: $localize `:@@number_of_related_series:#S`,
                     pathToValue: "[00201206].Value[0]",
                     headerDescription: $localize `:@@number_of_study_related_series:Number of Study Related Series`,
                     widthWeight: 0.3,
@@ -2449,7 +2449,7 @@ export class StudyService {
                 }),
                 new TableSchemaElement({
                     type: "value",
-                    header: $localize `:@@number_of_instances:# Inst.`,
+                    header: $localize `:@@number_of_instances:#I`,
                     pathToValue: "[00201208].Value[0]",
                     headerDescription: $localize `:@@number_of_study_related_instances:Number of Study Related Instances`,
                     widthWeight: 0.3,
@@ -2873,9 +2873,9 @@ export class StudyService {
                 }),
                 new TableSchemaElement({
                     type: "pipe",
-                    header: $localize `:@@series_date:Series Time`,
+                    header: $localize `:@@series_time:Series Time`,
                     showBorderPath:"[00080031].showBorder",
-                    headerDescription: $localize `:@@series_date:Series Time`,
+                    headerDescription: $localize `:@@series_time:Series Time`,
                     pipe: new DynamicPipe(DicomTimePipe, ["00080031",]),
                     widthWeight: 0.6,
                     calculatedWidth: "15%"
@@ -3167,8 +3167,8 @@ export class StudyService {
                 }),
                 new TableSchemaElement({
                     type: "pipe",
-                    header: $localize `:@@series_date:Content Date`,
-                    headerDescription: $localize `:@@series_date:Content Date`,
+                    header: $localize `:@@content_date:Content Date`,
+                    headerDescription: $localize `:@@content_date:Content Date`,
                     pipe: new DynamicPipe(DicomDatePipe, ["00080023",]),
                     widthWeight: 0.6,
                     calculatedWidth: "15%"
