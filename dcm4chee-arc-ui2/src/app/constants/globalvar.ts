@@ -4985,7 +4985,7 @@ export class Globalvar {
             }, {
                 tag:"person-name-picker",
                 filterKey:"PatientName",
-                placeholder:$localize `:@@patient_family_name:Patient name`,
+                placeholder:$localize `:@@patient_family_name:Patient family name`,
                 description:$localize `:@@patient_family_name_tooltip:Order of name components in the search field differs from the rendered person names in the list`
             }, {
                 tag:"checkbox",
@@ -6023,7 +6023,7 @@ export class Globalvar {
             }, {
                 tag:"person-name-picker",
                 filterKey:"PatientName",
-                placeholder:$localize `:@@patient_family_name:Patient name`,
+                placeholder:$localize `:@@patient_family_name:Patient family name`,
                 description:$localize `:@@person_family_name_tooltip:Order of name components in the search field differs from the rendered person names in the list`
             }, {
                 tag:"checkbox",

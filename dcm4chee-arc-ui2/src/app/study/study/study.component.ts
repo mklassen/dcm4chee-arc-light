@@ -6133,10 +6133,7 @@ export class StudyComponent implements OnInit, OnDestroy, AfterContentChecked{
 
                                 if ((studies.length + series.length + patients.length) > 0 && instances.length > 0) {
                                     this.appService.showError(
-                                        $localize`:@@study.download_selected_instances_with_other_levels:
-                                        Cannot select entire patient/series/studies together with individual instances
-                                        (images) for download. In order to continue with the download, either de-select all
-                                        instances, or de-select all series/studies/patients and leave instances selected.`);
+                                        $localize`:@@study.download_selected_instances_with_other_levels:Cannot select entire patient/series/studies together with individual instances (images) for download. In order to continue with the download, either de-select all instances, or de-select all series/studies/patients and leave instances selected.`);
                                     return;
                                 }
 
