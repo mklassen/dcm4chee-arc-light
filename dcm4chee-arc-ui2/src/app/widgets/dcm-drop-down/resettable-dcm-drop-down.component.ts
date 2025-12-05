@@ -5,8 +5,9 @@ import {SelectDropdown} from "../../interfaces";
 
 @Component({
     selector: 'resettable-dcm-drop-down',
-    standalone: false,
-    templateUrl: './dcm-drop-down.component.html',
+    standalone: true,
+    imports: [DcmDropDownComponent],
+    templateUrl: './resettable-dcm-drop-down.component.html',
     styleUrls: ['./dcm-drop-down.component.scss'],
     animations:[
         trigger("showHide",[
@@ -32,8 +33,6 @@ import {SelectDropdown} from "../../interfaces";
 })
 export class ResettableDcmDropDownComponent extends DcmDropDownComponent{
     @Input() editable:boolean = false;
-    @Input() min:number;
-    @Input() max:number;
     @Input() showStar:boolean = false;
     @Input('model')
     set model(value){
