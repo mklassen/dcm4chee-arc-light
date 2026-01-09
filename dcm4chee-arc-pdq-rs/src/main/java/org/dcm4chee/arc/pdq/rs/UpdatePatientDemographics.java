@@ -229,12 +229,8 @@ public class UpdatePatientDemographics {
 
     private void validateAcceptedUserRoles(ArchiveAEExtension arcAE) {
         KeycloakContext keycloakContext = KeycloakContext.valueOf(request);
-        if (keycloakContext.isSecured() && !keycloakContext.isUserInRole(System.getProperty(SUPER_USER_ROLE))) {
-            if (!arcAE.isAcceptedUserRole(keycloakContext.getRoles()))
-                throw new WebApplicationException(
-                        "Application Entity " + arcAE.getApplicationEntity().getAETitle() + " does not list role of accessing user",
-                        Response.Status.FORBIDDEN);
-        }
+        keycloakContext.validateAcceptedUserRoles(arcAE, System.getProperty(SUPER_USER_ROLE),
+                "service-role-" + this.getClass().getName().split("\\$", 2)[0]);
     }
 
     private void validateWebAppServiceClass() {
