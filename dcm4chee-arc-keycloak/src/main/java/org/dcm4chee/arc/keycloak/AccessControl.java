@@ -163,7 +163,7 @@ public class AccessControl {
             return false;
 
         AccessToken.Access access = token.getRealmAccess();
-        if (access.isUserInRole(role))
+        if (access != null &&access.isUserInRole(role))
             return true;
 
         access = token.getResourceAccess(token.getIssuedFor());
