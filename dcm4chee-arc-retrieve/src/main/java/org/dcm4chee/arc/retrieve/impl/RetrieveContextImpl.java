@@ -219,7 +219,7 @@ class RetrieveContextImpl implements RetrieveContext {
                 arcAE.getAccessControlIDs(),
                 this.httpServletRequestInfo,
                 this.requestAssociation,
-                ArchiveAssociationHandler.keycloakClient(arcAE)
+                arcAE.keycloakClient()
         );
     }
 

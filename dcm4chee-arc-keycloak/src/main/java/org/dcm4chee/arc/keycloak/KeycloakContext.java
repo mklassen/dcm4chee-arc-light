@@ -75,8 +75,8 @@ public class KeycloakContext {
         return ksc != null;
     }
 
-    public boolean isUserInRole(String role) {
-        return ksc != null && AccessControl.isUserInRole(ksc.getTokenString(), role);
+    public boolean isUserInRole(String role, String clientId) {
+        return ksc != null && AccessControl.isUserInRole(ksc.getTokenString(), role, clientId);
     }
 
     public String[] getRoles() {

@@ -452,10 +452,11 @@ public class StowRS {
 
     private void validateAcceptedUserRoles(ArchiveAEExtension arcAE) {
         KeycloakContext keycloakContext = KeycloakContext.valueOf(request);
-        if (keycloakContext.isSecured() && !keycloakContext.isUserInRole(System.getProperty(SUPER_USER_ROLE))) {
+        String clientId = arcAE.keycloakClient().getKeycloakClientID();
+        if (keycloakContext.isSecured() && !keycloakContext.isUserInRole(System.getProperty(SUPER_USER_ROLE), clientId)) {
             String serviceRole = "service-role-" + this.getClass().getName().split("\\$", 2)[0];
             if (!arcAE.isAcceptedUserRole(keycloakContext.getRoles()) ||
-            !keycloakContext.isUserInRole(System.getProperty(serviceRole)))
+            !keycloakContext.isUserInRole(System.getProperty(serviceRole), clientId))
                 throw new WebApplicationException(
                         "Accessing user not in service role (" + serviceRole + "), and/or " +
                         "Application Entity " + arcAE.getApplicationEntity().getAETitle() + " does not list role of accessing user",
@@ -485,10 +486,12 @@ public class StowRS {
                         Response.Status.NOT_FOUND)));
 
         KeycloakContext keycloakContext = KeycloakContext.valueOf(request);
+        ArchiveAEExtension arcAE = device.getApplicationEntity(aet, true).getAEExtension(ArchiveAEExtension.class);
+        String clientId = arcAE.keycloakClient().getKeycloakClientID();
         if (keycloakContext.isSecured()
                 && webApplication.getProperties().containsKey("roles"))
             Arrays.stream(webApplication.getProperties().get("roles").split(","))
-                    .filter(keycloakContext::isUserInRole)
+                    .filter(role -> keycloakContext.isUserInRole(role, clientId))
                     .findFirst()
                     .orElseThrow(() -> new WebApplicationException(errResponse(
                             "Web Application with STOW_RS service class does not list role of accessing user",

@@ -459,10 +459,11 @@ public class DiffRS {
 
     private void validateAcceptedUserRoles(ArchiveAEExtension arcAE) {
         KeycloakContext keycloakContext = KeycloakContext.valueOf(request);
-        if (keycloakContext.isSecured() && !keycloakContext.isUserInRole(System.getProperty(SUPER_USER_ROLE))) {
+        String clientId = arcAE.keycloakClient().getKeycloakClientID();
+        if (keycloakContext.isSecured() && !keycloakContext.isUserInRole(System.getProperty(SUPER_USER_ROLE), clientId)) {
             String serviceRole = "service-role-" + this.getClass().getName().split("\\$", 2)[0];
             if (!arcAE.isAcceptedUserRole(keycloakContext.getRoles()) ||
-            !keycloakContext.isUserInRole(System.getProperty(serviceRole)))
+            !keycloakContext.isUserInRole(System.getProperty(serviceRole), clientId))
                 throw new WebApplicationException(
                         "Accessing user not in service role (" + serviceRole + "), and/or " +
                         "Application Entity " + arcAE.getApplicationEntity().getAETitle() + " does not list role of accessing user",

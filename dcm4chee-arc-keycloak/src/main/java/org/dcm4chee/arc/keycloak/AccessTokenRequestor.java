@@ -207,7 +207,7 @@ public class AccessTokenRequestor {
             JWSInput jws = new JWSInput(tokenString);
             AccessToken token = jws.readJsonContent(AccessToken.class);
             parseToken(tokenString, kc, identityConfigurer);
-            return AccessControl.isUserInRole(token, role);
+            return AccessControl.isUserInRole(token, role, kc.getKeycloakClientID());
         }
     }
 
@@ -251,7 +251,7 @@ public class AccessTokenRequestor {
         tokenVerifier.verify();
         AccessToken token = tokenVerifier.getToken();
         parseToken(tokenString, kc, identityConfigurer);
-        return AccessControl.isUserInRole(token, role);
+        return AccessControl.isUserInRole(token, role, kc.getKeycloakClientID());
     }
 
     private PublicKey getPublicKey(String kid, String jwksUrl, KeycloakClient kc)

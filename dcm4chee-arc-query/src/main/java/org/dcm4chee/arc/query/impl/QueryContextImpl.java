@@ -291,7 +291,7 @@ class QueryContextImpl implements QueryContext {
                 this.getArchiveAEExtension().getAccessControlIDs(),
                 this.httpRequest,
                 this.getAssociation(),
-                ArchiveAssociationHandler.keycloakClient(this.getArchiveAEExtension())
+                this.getArchiveAEExtension().keycloakClient()
         );
     }
 }

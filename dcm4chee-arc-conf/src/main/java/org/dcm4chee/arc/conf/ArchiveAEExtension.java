@@ -46,6 +46,7 @@ import org.dcm4che3.io.BulkDataDescriptor;
 import org.dcm4che3.json.JSONWriter;
 import org.dcm4che3.net.AEExtension;
 import org.dcm4che3.net.Association;
+import org.dcm4che3.net.KeycloakClient;
 import org.dcm4che3.net.Dimse;
 import org.dcm4che3.net.TransferCapability;
 import org.dcm4che3.util.StringUtils;
@@ -1780,6 +1781,26 @@ public class ArchiveAEExtension extends AEExtension {
         return userIdentityNegotiationKeycloakClientID != null
                 ? userIdentityNegotiationKeycloakClientID
                 : getArchiveDeviceExtension().getUserIdentityNegotiationKeycloakClientID();
+    }
+
+    public KeycloakClient keycloakClient() {
+        String keycloakClientID = this.userIdentityNegotiationKeycloakClientID();
+        if (keycloakClientID != null) {
+            KeycloakClient kc = this.getApplicationEntity().getDevice().getKeycloakClient(keycloakClientID);
+            return kc != null ? kc.clone() : null;
+        }
+        if (System.getProperty("auth-server-url") != null) {
+            KeycloakClient kc = new KeycloakClient();
+            kc.setKeycloakServerURL(System.getProperty("auth-server-url"));
+            kc.setKeycloakRealm(System.getProperty("realm-name", "dcm4che"));
+            kc.setKeycloakClientID(System.getProperty("ui-client-id", "dcm4chee-arc-ui"));
+            kc.setTLSDisableTrustManager(
+                    Boolean.parseBoolean(System.getProperty("disable-trust-manager", "false")));
+            kc.setTLSAllowAnyHostname(
+                    Boolean.parseBoolean(System.getProperty("allow-any-hostname", "true")));
+            return kc;
+        }
+        return null;
     }
 
     public Attributes.UpdatePolicy getCopyMoveUpdatePolicy() {

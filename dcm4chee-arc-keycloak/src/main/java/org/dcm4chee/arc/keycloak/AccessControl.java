@@ -151,11 +151,11 @@ public class AccessControl {
         }
     }
 
-    public static boolean isUserInRole(String tokenString, String role){
-        return isUserInRole(getKeycloakAccessToken(tokenString), role);
+    public static boolean isUserInRole(String tokenString, String role, String clientId){
+        return isUserInRole(getKeycloakAccessToken(tokenString), role, clientId);
     }
 
-    public static boolean isUserInRole(AccessToken token, String role){
+    public static boolean isUserInRole(AccessToken token, String role, String clientId){
         if (role == null)
             return true;
 
@@ -166,7 +166,9 @@ public class AccessControl {
         if (access != null &&access.isUserInRole(role))
             return true;
 
-        access = token.getResourceAccess(token.getIssuedFor());
+        if (clientId == null)
+            return false;
+        access = token.getResourceAccess(clientId);
         return access != null && access.isUserInRole(role);
     }
 
@@ -243,7 +245,8 @@ public class AccessControl {
                 ( (requestAssociation != null ) && !userIdentityNegotiationPresent ) ||
                 AccessControl.isUserInRole(
                 accessToken,
-                datacareRole
+                datacareRole,
+                keycloakClient.getKeycloakClientID()
         ));
 
         if (overrideRoleBasedAccessControl){

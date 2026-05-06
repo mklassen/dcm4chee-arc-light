@@ -112,7 +112,7 @@ public class ArchiveAssociationHandler extends AssociationHandler {
         if (userIdentityRQ != null
                 && (userIdentityRQ.getType() == UserIdentityRQ.USERNAME_PASSCODE
                     || userIdentityRQ.getType() == UserIdentityRQ.JWT)
-                && (kc = keycloakClient(arcAE)) != null)
+                && (kc = arcAE.keycloakClient()) != null)
             try {
 
                 AccessTokenRequestor.IdentityConfigurer identityConfigurer = (response, accessTokenString, accessControlIDs) -> {
@@ -139,26 +139,6 @@ public class ArchiveAssociationHandler extends AssociationHandler {
                 return false;
             }
         return optional;
-    }
-
-    public static KeycloakClient keycloakClient(ArchiveAEExtension arcAE) {
-        String keycloakClientID = arcAE.userIdentityNegotiationKeycloakClientID();
-        if (keycloakClientID != null) {
-            KeycloakClient kc = arcAE.getApplicationEntity().getDevice().getKeycloakClient(keycloakClientID);
-            return kc != null ? kc.clone() : null;
-        }
-        if (System.getProperty("auth-server-url") != null) {
-            KeycloakClient kc = new KeycloakClient();
-            kc.setKeycloakServerURL(System.getProperty("auth-server-url"));
-            kc.setKeycloakRealm(System.getProperty("realm-name", "dcm4che"));
-            kc.setKeycloakClientID(System.getProperty("ui-client-id", "dcm4chee-arc-ui"));
-            kc.setTLSDisableTrustManager(
-                    Boolean.parseBoolean(System.getProperty("disable-trust-manager", "false")));
-            kc.setTLSAllowAnyHostname(
-                    Boolean.parseBoolean(System.getProperty("allow-any-hostname", "true")));
-            return kc;
-        }
-        return null;
     }
 
     private boolean validateCallingAEHostname(Association as) {
