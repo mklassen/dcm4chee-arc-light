@@ -39,7 +39,10 @@
 package org.dcm4chee.arc.keycloak;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 import org.dcm4che3.util.StringUtils;
+import org.dcm4chee.arc.conf.ArchiveAEExtension;
 import org.wildfly.security.http.oidc.OidcSecurityContext;
 
 import java.util.List;
@@ -81,6 +84,22 @@ public class KeycloakContext {
 
     public String[] getRoles() {
         return ksc != null ? AccessControl.getRoles(ksc.getToken()).toArray(new String[0]) : new String[0];
+    }
+
+
+    public void validateAcceptedUserRoles(ArchiveAEExtension arcAE, String superUserRole, String serviceRole) {
+        // Forbidden to access endpoint if the app is secured and the user is not in any of
+        // - superUserRole
+        // - an accepted user role of the AE (if archive AE is configured with one or more dcmAcceptedUserRole)
+        // - serviceRole (if defined as a system property)
+        if (this.isSecured() && !this.isUserInRole(superUserRole)) {
+            if (!arcAE.isAcceptedUserRole(this.getRoles()) ||
+            !this.isUserInRole(System.getProperty(serviceRole)))
+                throw new WebApplicationException(
+                        "Accessing user not in service role (" + serviceRole + "), and/or " +
+                        "Application Entity " + arcAE.getApplicationEntity().getAETitle() + " does not list role of accessing user",
+                        Response.Status.FORBIDDEN);
+        }
     }
 
     private List<String> getRoleList() {
