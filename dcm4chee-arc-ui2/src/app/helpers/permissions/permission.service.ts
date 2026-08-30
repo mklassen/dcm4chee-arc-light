@@ -112,7 +112,7 @@ export class PermissionService {
                     if (userInfo) {
                         const client: string = _.get(userInfo, 'tokenParsed.azp');
                         let roles: Array<string>;
-                        roles = _.get(userInfo, 'tokenParsed.realm_access.roles').concat(_.get(userInfo, 'tokenParsed.resource_access[' + client + '].roles'));
+                        roles = _.get(userInfo, 'tokenParsed.realm_access.roles', []).concat(_.get(userInfo, 'tokenParsed.resource_access[' + client + '].roles', []));
                         let user = new User({
                             authServerUrl:userInfo.authServerUrl,
                             realm:userInfo.realm,

@@ -49,7 +49,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>dcm4chee-arc-storage-cloud</artifactId>
+  <artifactId>dcm4chee-arc-storage-ecloud</artifactId>
 
   <dependencies>
     <dependency>
@@ -67,6 +67,12 @@
     <dependency>
       <groupId>org.dcm4che.dcm4chee-arc</groupId>
       <artifactId>dcm4chee-arc-storage</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.dcm4che.dcm4chee-arc</groupId>
+      <artifactId>dcm4chee-arc-storage-cloud</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>

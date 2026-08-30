@@ -375,15 +375,8 @@ public class StgVerCSVRS {
 
     private void validateAcceptedUserRoles(ArchiveAEExtension arcAE) {
         KeycloakContext keycloakContext = KeycloakContext.valueOf(request);
-        if (keycloakContext.isSecured() && !keycloakContext.isUserInRole(System.getProperty(SUPER_USER_ROLE))) {
-            String serviceRole = "service-role-" + this.getClass().getName();
-            if (!arcAE.isAcceptedUserRole(keycloakContext.getRoles()) ||
-            !keycloakContext.isUserInRole(System.getProperty(serviceRole)))
-                throw new WebApplicationException(
-                        "Accessing user not in service role (" + serviceRole + "), and/or " +
-                        "Application Entity " + arcAE.getApplicationEntity().getAETitle() + " does not list role of accessing user",
-                        Response.Status.FORBIDDEN);
-        }
+        keycloakContext.validateAcceptedUserRoles(arcAE, System.getProperty(SUPER_USER_ROLE),
+                "service-role-" + this.getClass().getName().split("\\$", 2)[0]);
     }
 
     private void validateWebAppServiceClass() {

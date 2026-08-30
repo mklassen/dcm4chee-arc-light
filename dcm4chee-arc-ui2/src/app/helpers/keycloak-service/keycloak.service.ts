@@ -29,7 +29,7 @@ import {j4care} from "../j4care.service";
 import {User} from "../../models/user";
 import * as _ from 'lodash-es';
 import {promise} from "selenium-webdriver";
-import {flatMap, map, switchMap} from "rxjs/operators";
+import {flatMap, map, switchMap, take} from "rxjs/operators";
 import {LocalLanguageObject} from "../../interfaces";
 import {J4careHttpService} from "../j4care-http.service";
 
@@ -203,7 +203,7 @@ export class KeycloakService {
                     return of(KeycloakService.keycloakAuth);
                 }
             }else{
-                return this.getTokenObs();
+                return this.getTokenObs().pipe(take(1));
             }
         }
     }
