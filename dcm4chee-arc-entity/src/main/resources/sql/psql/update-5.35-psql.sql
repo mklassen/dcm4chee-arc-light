@@ -24,5 +24,6 @@ alter table study alter access_control_id drop not null;
 alter table series alter access_control_id drop not null;
 
 -- part 3: can be applied on already running archive 5.35
-drop index IDX24av2ewa70e7cykl340n63aqd;
+drop index if exists IDX24av2ewa70e7cykl340n63aqd;
+drop index if exists UK_24av2ewa70e7cykl340n63aqd;
 drop index IDXr9qbr5jv4ejclglvyvtsynuo9;
