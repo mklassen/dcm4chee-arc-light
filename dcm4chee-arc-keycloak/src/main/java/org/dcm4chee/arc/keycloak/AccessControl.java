@@ -166,7 +166,7 @@ public class AccessControl {
         if (access != null &&access.isUserInRole(role))
             return true;
 
-        access = token.getResourceAccess(token.getIssuedFor());
+        access = token.getResourceAccess(System.getProperty("rs-client-id","dcm4chee-arc-rs"));
         return access != null && access.isUserInRole(role);
     }
 
